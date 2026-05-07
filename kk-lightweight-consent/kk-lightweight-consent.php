@@ -1,12 +1,12 @@
 <?php
 /**
  * Plugin Name: KK Lightweight Consent
- * Plugin URI: https://example.com/
- * Description: Lightweight, first-party cookie consent banner with GTM and Google Consent Mode v2 integration.
- * Version: 1.0.0
- * Author: KK
+ * Plugin URI: https://kk.coach
+ * Description: Lightweight custom consent banner for WordPress with Google Tag Manager and Google Consent Mode v2 support.
+ * Version: 0.1.0
+ * Author: KK Coach
+ * Author URI: https://kk.coach
  * Text Domain: kk-lightweight-consent
- * Domain Path: /languages
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -294,5 +294,33 @@ class KK_Lightweight_Consent {
 		<?php
 	}
 }
+
+
+function kk_lwc_activate() {
+	if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
+		deactivate_plugins( plugin_basename( __FILE__ ) );
+		add_option( 'kk_lwc_activation_error', 'KK Lightweight Consent requires PHP 7.4 or newer.' );
+		return;
+	}
+
+	if ( false === get_option( KK_Lightweight_Consent::OPTION_KEY, false ) ) {
+		add_option( KK_Lightweight_Consent::OPTION_KEY, array() );
+	}
+}
+register_activation_hook( __FILE__, 'kk_lwc_activate' );
+
+add_action(
+	'admin_notices',
+	function() {
+		$message = get_option( 'kk_lwc_activation_error' );
+		if ( ! $message ) {
+			return;
+		}
+
+		delete_option( 'kk_lwc_activation_error' );
+		echo '<div class="notice notice-error"><p>' . esc_html( $message ) . '</p></div>';
+	}
+);
+
 
 new KK_Lightweight_Consent();
