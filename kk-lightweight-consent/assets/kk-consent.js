@@ -86,6 +86,9 @@
     chkPersonalization.checked = !!existing.choices.personalization;
     closeBanner();
   } else {
+    chkAnalytics.checked = true;
+    chkMarketing.checked = true;
+    chkPersonalization.checked = true;
     openBanner(false);
   }
 
