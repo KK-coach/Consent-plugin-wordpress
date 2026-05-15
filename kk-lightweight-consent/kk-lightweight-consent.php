@@ -137,7 +137,7 @@ class KK_Lightweight_Consent {
 		$lang = $this->current_lang();
 		?>
 		<div id="kk-consent-root" class="kk-consent-root" data-lang="<?php echo esc_attr( $lang ); ?>" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;z-index:99999;pointer-events:none;">
-			<div class="kk-consent-banner" role="dialog" aria-live="polite" aria-label="Cookie consent" hidden style="display:none;max-width:860px;width:100%;pointer-events:auto;">
+			<div class="kk-consent-banner" role="dialog" aria-live="polite" aria-label="Cookie consent" hidden style="max-width:860px;width:100%;pointer-events:auto;">
 				<img class="kk-consent-logo" src="" alt="" hidden>
 				<p class="kk-consent-text"><?php echo wp_kses_post( $options[ 'banner_text_' . $lang ] ); ?></p>
 				<a class="kk-consent-policy" href="https://kk.coach/" target="_blank" rel="noopener noreferrer">https://kk.coach/</a>
