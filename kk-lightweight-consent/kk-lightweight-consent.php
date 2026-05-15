@@ -136,8 +136,8 @@ class KK_Lightweight_Consent {
 		}
 		$lang = $this->current_lang();
 		?>
-		<div id="kk-consent-root" class="kk-consent-root" data-lang="<?php echo esc_attr( $lang ); ?>">
-			<div class="kk-consent-banner" role="dialog" aria-live="polite" aria-label="Cookie consent" hidden>
+		<div id="kk-consent-root" class="kk-consent-root" data-lang="<?php echo esc_attr( $lang ); ?>" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;z-index:99999;pointer-events:none;">
+			<div class="kk-consent-banner" role="dialog" aria-live="polite" aria-label="Cookie consent" hidden style="display:none;max-width:860px;width:100%;pointer-events:auto;">
 				<img class="kk-consent-logo" src="" alt="" hidden>
 				<p class="kk-consent-text"><?php echo wp_kses_post( $options[ 'banner_text_' . $lang ] ); ?></p>
 				<a class="kk-consent-policy" href="https://kk.coach/" target="_blank" rel="noopener noreferrer">https://kk.coach/</a>
@@ -166,10 +166,23 @@ class KK_Lightweight_Consent {
 		$output['consent_version'] = sanitize_key( $output['consent_version'] ); $output['gtm_container_id'] = preg_replace( '/[^A-Z0-9\-]/', '', strtoupper( sanitize_text_field( $output['gtm_container_id'] ) ) );
 		$output['policy_url'] = esc_url_raw( $output['policy_url'] ); $output['logo_url'] = esc_url_raw( $output['logo_url'] ); $output['cookie_days'] = max( 1, absint( $output['cookie_days'] ) ); return $output;
 	}
-	public function render_admin_page() {
-		if ( ! current_user_can( 'manage_options' ) ) { return; }
-		$options = $this->get_options();
-		?><div class="wrap"><h1><?php echo esc_html__( 'KK Lightweight Consent Settings', 'kk-lightweight-consent' ); ?></h1><form method="post" action="options.php"><?php settings_fields( 'kk_lwc_settings_group' ); ?><table class="form-table" role="presentation">
+		public function render_admin_page() {
+			if ( ! current_user_can( 'manage_options' ) ) { return; }
+			$options = $this->get_options();
+			?><div class="wrap"><h1><?php echo esc_html__( 'KK Lightweight Consent Settings', 'kk-lightweight-consent' ); ?></h1>
+			<div style="background:#fff;border:1px solid #ccd0d4;border-left:4px solid #1d2327;padding:12px 16px;margin:16px 0;">
+				<h2 style="margin-top:0;"><?php echo esc_html__( 'Google Tag Manager beállítás (rövid útmutató)', 'kk-lightweight-consent' ); ?></h2>
+				<ol style="margin-left:18px;">
+					<li><?php echo esc_html__( 'A GTM-ben hozz létre Data Layer Variable változókat: kk_consent_analytics, kk_consent_marketing, kk_consent_personalization.', 'kk-lightweight-consent' ); ?></li>
+					<li><?php echo esc_html__( 'Hozz létre Custom Event triggert: kk_consent_update.', 'kk-lightweight-consent' ); ?></li>
+					<li><?php echo esc_html__( 'GA4 tageknél használd az analytics_storage consent requirementet.', 'kk-lightweight-consent' ); ?></li>
+					<li><?php echo esc_html__( 'Google Ads conversion tageknél használd az ad_storage + ad_user_data requirementeket.', 'kk-lightweight-consent' ); ?></li>
+					<li><?php echo esc_html__( 'Remarketing / egyéb marketing tageknél csak akkor fusson a tag, ha kk_consent_marketing = granted.', 'kk-lightweight-consent' ); ?></li>
+					<li><?php echo esc_html__( 'Analitikai (nem Google) tageknél csak akkor fusson a tag, ha kk_consent_analytics = granted.', 'kk-lightweight-consent' ); ?></li>
+				</ol>
+				<p><a href="https://kk.coach/" target="_blank" rel="noopener noreferrer"><?php echo esc_html__( 'Bővebb információ: kk.coach', 'kk-lightweight-consent' ); ?></a></p>
+			</div>
+			<form method="post" action="options.php"><?php settings_fields( 'kk_lwc_settings_group' ); ?><table class="form-table" role="presentation">
 		<tr><th scope="row">Banner engedélyezve</th><td><label><input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner_enabled]" value="1" <?php checked( $options['banner_enabled'], 1 ); ?>> Igen</label></td></tr>
 		<tr><th scope="row">Consent version</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[consent_version]" value="<?php echo esc_attr( $options['consent_version'] ); ?>" class="regular-text"></td></tr>
 		<tr><th scope="row">GTM Container ID</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[gtm_container_id]" value="<?php echo esc_attr( $options['gtm_container_id'] ); ?>" class="regular-text"></td></tr>
