@@ -1,6 +1,6 @@
 # Lightweight Consent Mode
 
-Version: **0.3.1**
+Version: **0.3.2**
 
 ## Installation
 1. Copy plugin folder to `wp-content/plugins/lightweight-consent-mode/`.
@@ -67,3 +67,12 @@ The plugin adds a **Settings** link on the WordPress Plugins page via `plugin_ac
 - Verify consent events in GTM Preview (`kk_consent_default`, `kk_consent_update`).
 - Check `window.dataLayer` in browser console and confirm consent state changes.
 - Avoid duplicate GTM containers and publish GTM changes after updates.
+
+
+## GTM setup (short guide)
+- Set GTM Container ID and enable GTM injection only if GTM is not already installed elsewhere.
+- Use GTM Preview in an incognito session and verify `kk_consent_default` before interaction and `kk_consent_update` after user choices.
+- Typical GA4 trigger is **All Pages** with consent checks.
+- Consent Initialization is for consent-setup tags, not normal GA4/Ads/marketing tags.
+- Use `kk_consent_update` Custom Event trigger only for tags that should fire immediately after consent changes.
+- Check `window.dataLayer` in browser console for consent events and state changes.
