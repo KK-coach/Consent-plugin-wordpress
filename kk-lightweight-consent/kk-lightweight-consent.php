@@ -3,7 +3,7 @@
  * Plugin Name: Lightweight Consent Mode
  * Plugin URI: https://example.com
  * Description: Lightweight consent banner for WordPress with Google Tag Manager and Google Consent Mode v2 support.
- * Version: 0.3.2
+ * Version: 0.3.3
  * Author: Consent Plugin
  * Author URI: https://example.com
  * Text Domain: lightweight-consent-mode
@@ -13,7 +13,7 @@
 defined( 'ABSPATH' ) || exit;
 
 class Lightweight_Consent_Mode {
-	const LCM_VERSION   = '0.3.2';
+	const LCM_VERSION   = '0.3.3';
 	const OPTION_KEY    = 'lcm_options';
 	const LEGACY_OPTION = 'kk_lwc_options';
 
@@ -54,6 +54,7 @@ class Lightweight_Consent_Mode {
 			'language_mode'             => 'browser',
 			'banner_preset'             => 'universal',
 			'banner_order'              => 'accept_all,reject_all,settings',
+			'panel_order'               => 'save_choices',
 			'consent_version'           => 'v1',
 			'cookie_days'               => 180,
 			'policy_url'                => home_url( '/' ),
@@ -75,6 +76,7 @@ class Lightweight_Consent_Mode {
 			'banner_padding'            => 10,
 			'button_padding_y'          => 10,
 			'button_padding_x'          => 18,
+			'button_radius'             => 0,
 			'header_font_preset'        => 'inherit',
 			'header_custom_font'        => '',
 			'header_font_size'          => 22,
@@ -87,6 +89,12 @@ class Lightweight_Consent_Mode {
 			'btn_reject_bg'             => '#111111', 'btn_reject_text' => '#ffffff', 'btn_reject_border' => '#111111',
 			'btn_settings_bg'           => '#ffffff', 'btn_settings_text' => '#111111', 'btn_settings_border' => '#111111',
 			'btn_save_bg'               => '#ffffff', 'btn_save_text' => '#111111', 'btn_save_border' => '#111111',
+
+			'btn_accept_hover_bg'       => '', 'btn_accept_hover_text' => '', 'btn_accept_hover_border' => '',
+			'btn_reject_hover_bg'       => '', 'btn_reject_hover_text' => '', 'btn_reject_hover_border' => '',
+			'btn_settings_hover_bg'     => '', 'btn_settings_hover_text' => '', 'btn_settings_hover_border' => '',
+			'btn_save_hover_bg'         => '', 'btn_save_hover_text' => '', 'btn_save_hover_border' => '',
+
 			'banner_title_en'           => 'Your privacy choices',
 			'banner_title_hu'           => '',
 			'banner_text_en'            => 'We use cookies and similar technologies to operate this website, analytics, marketing measurement and personalization.',
@@ -134,7 +142,6 @@ class Lightweight_Consent_Mode {
 					array( 'action' => 'settings', 'label_key' => 'customize', 'style' => 'secondary' ),
 				),
 				'panel_buttons' => array(
-					array( 'action' => 'reject_all', 'label_key' => 'reject_all', 'style' => 'outline' ),
 					array( 'action' => 'save_choices', 'label_key' => 'save_choices', 'style' => 'primary' ),
 				),
 			),
@@ -145,7 +152,6 @@ class Lightweight_Consent_Mode {
 					array( 'action' => 'settings', 'label_key' => 'customize', 'style' => 'secondary' ),
 				),
 				'panel_buttons' => array(
-					array( 'action' => 'reject_all', 'label_key' => 'reject_all', 'style' => 'outline' ),
 					array( 'action' => 'save_choices', 'label_key' => 'save_choices', 'style' => 'primary' ),
 				),
 			),
@@ -163,6 +169,21 @@ class Lightweight_Consent_Mode {
 		$out = array();
 		foreach ( $parts as $a ) { if ( isset( $map[ $a ] ) ) { $out[] = $map[ $a ]; } }
 		foreach ( $buttons as $b ) { if ( ! in_array( $b['action'], $parts, true ) ) { $out[] = $b; } }
+		return $out;
+	}
+
+
+	private function ordered_panel_buttons( $buttons, $order_string ) {
+		$allowed = array( 'save_choices', 'reject_all' );
+		$parts = array_filter( array_map( 'trim', explode( ',', (string) $order_string ) ) );
+		if ( empty( $parts ) || array_diff( $parts, $allowed ) ) {
+			$parts = array( 'save_choices' );
+		}
+		$map = array();
+		foreach ( $buttons as $b ) { $map[ $b['action'] ] = $b; }
+		$out = array();
+		foreach ( $parts as $a ) { if ( isset( $map[ $a ] ) ) { $out[] = $map[ $a ]; } }
+		if ( empty( $out ) ) { return array( array( 'action' => 'save_choices', 'label_key' => 'save_choices', 'style' => 'primary' ) ); }
 		return $out;
 	}
 
@@ -191,6 +212,7 @@ class Lightweight_Consent_Mode {
 			'--lcm-banner-padding:' . absint( $options['banner_padding'] ) . 'px;' .
 			'--lcm-button-padding-y:' . absint( $options['button_padding_y'] ) . 'px;' .
 			'--lcm-button-padding-x:' . absint( $options['button_padding_x'] ) . 'px;' .
+			'--lcm-button-radius:' . absint( $options['button_radius'] ) . 'px;' .
 			'--lcm-header-font:' . esc_attr( $this->font_family_from( $options['header_font_preset'], $options['header_custom_font'] ) ) . ';' .
 			'--lcm-body-font:' . esc_attr( $this->font_family_from( $options['body_font_preset'], $options['body_custom_font'] ) ) . ';' .
 			'--lcm-button-font:' . esc_attr( $this->font_family_from( $options['button_font_preset'], $options['button_custom_font'] ) ) . ';' .
@@ -200,6 +222,10 @@ class Lightweight_Consent_Mode {
 			'--lcm-reject-bg:' . esc_attr( $options['btn_reject_bg'] ) . ';--lcm-reject-text:' . esc_attr( $options['btn_reject_text'] ) . ';--lcm-reject-border:' . esc_attr( $options['btn_reject_border'] ) . ';' .
 			'--lcm-settings-bg:' . esc_attr( $options['btn_settings_bg'] ) . ';--lcm-settings-text:' . esc_attr( $options['btn_settings_text'] ) . ';--lcm-settings-border:' . esc_attr( $options['btn_settings_border'] ) . ';' .
 			'--lcm-save-bg:' . esc_attr( $options['btn_save_bg'] ) . ';--lcm-save-text:' . esc_attr( $options['btn_save_text'] ) . ';--lcm-save-border:' . esc_attr( $options['btn_save_border'] ) . ';' .
+			'--lcm-accept-hover-bg:' . esc_attr( $options['btn_accept_hover_bg'] ?: $options['btn_accept_bg'] ) . ';--lcm-accept-hover-text:' . esc_attr( $options['btn_accept_hover_text'] ?: $options['btn_accept_text'] ) . ';--lcm-accept-hover-border:' . esc_attr( $options['btn_accept_hover_border'] ?: $options['btn_accept_border'] ) . ';' .
+			'--lcm-reject-hover-bg:' . esc_attr( $options['btn_reject_hover_bg'] ?: $options['btn_reject_bg'] ) . ';--lcm-reject-hover-text:' . esc_attr( $options['btn_reject_hover_text'] ?: $options['btn_reject_text'] ) . ';--lcm-reject-hover-border:' . esc_attr( $options['btn_reject_hover_border'] ?: $options['btn_reject_border'] ) . ';' .
+			'--lcm-settings-hover-bg:' . esc_attr( $options['btn_settings_hover_bg'] ?: $options['btn_settings_bg'] ) . ';--lcm-settings-hover-text:' . esc_attr( $options['btn_settings_hover_text'] ?: $options['btn_settings_text'] ) . ';--lcm-settings-hover-border:' . esc_attr( $options['btn_settings_hover_border'] ?: $options['btn_settings_border'] ) . ';' .
+			'--lcm-save-hover-bg:' . esc_attr( $options['btn_save_hover_bg'] ?: $options['btn_save_bg'] ) . ';--lcm-save-hover-text:' . esc_attr( $options['btn_save_hover_text'] ?: $options['btn_save_text'] ) . ';--lcm-save-hover-border:' . esc_attr( $options['btn_save_hover_border'] ?: $options['btn_save_border'] ) . ';' .
 		'}';
 		wp_add_inline_style( 'lightweight-consent-mode', $inline_css );
 
@@ -255,6 +281,7 @@ class Lightweight_Consent_Mode {
 		$presets = $this->get_presets();
 		$preset = isset( $presets[ $o['banner_preset'] ] ) ? $o['banner_preset'] : 'universal';
 		$banner_buttons = $this->ordered_banner_buttons( $presets[ $preset ]['banner_buttons'], $o['banner_order'] );
+		$panel_buttons  = $this->ordered_panel_buttons( $presets[ $preset ]['panel_buttons'], $o['panel_order'] );
 		?>
 		<div id="lcm-consent-root" class="lcm-consent-root" data-desktop-position="<?php echo esc_attr( $o['desktop_position'] ); ?>" data-mobile-layout="<?php echo esc_attr( $o['mobile_layout'] ); ?>" data-desktop-layout="<?php echo esc_attr( $o['desktop_layout'] ); ?>">
 			<div class="lcm-consent-banner" role="dialog" aria-live="polite" aria-label="Cookie consent" hidden>
@@ -269,7 +296,7 @@ class Lightweight_Consent_Mode {
 					<label><input type="checkbox" class="lcm-analytics"> <span class="lcm-analytics-label"></span> <small class="lcm-analytics-desc"></small></label>
 					<label><input type="checkbox" class="lcm-marketing"> <span class="lcm-marketing-label"></span> <small class="lcm-marketing-desc"></small></label>
 					<label><input type="checkbox" class="lcm-personalization"> <span class="lcm-personalization-label"></span> <small class="lcm-personalization-desc"></small></label>
-					<div class="lcm-consent-panel-actions"><?php $this->render_buttons( $presets[ $preset ]['panel_buttons'] ); ?></div>
+					<div class="lcm-consent-panel-actions"><?php $this->render_buttons( $panel_buttons ); ?></div>
 				</div>
 			</div>
 			<button type="button" class="lcm-consent-reopen" hidden aria-label="Cookie settings">⚙</button>
@@ -290,13 +317,15 @@ class Lightweight_Consent_Mode {
 		$o['mobile_layout'] = in_array( $o['mobile_layout'], array('sheet','box'), true ) ? $o['mobile_layout'] : 'sheet';
 		$o['consent_version'] = sanitize_key( $o['consent_version'] );
 		$o['banner_order'] = sanitize_text_field( $o['banner_order'] );
+		$o['panel_order'] = sanitize_text_field( $o['panel_order'] );
 		$o['gtm_container_id'] = preg_replace('/[^A-Z0-9\-]/','',strtoupper(sanitize_text_field($o['gtm_container_id'])));
 		$o['policy_url'] = esc_url_raw( $o['policy_url'] ); $o['logo_url'] = esc_url_raw( $o['logo_url'] );
 		$o['cookie_days'] = max(1,min(730,absint($o['cookie_days'])));
-		foreach ( array('design_border_radius'=>array(0,40),'design_max_width'=>array(320,1400),'banner_padding'=>array(0,64),'button_padding_y'=>array(0,32),'button_padding_x'=>array(0,64),'design_border_width'=>array(0,10),'header_font_size'=>array(10,64),'header_font_weight'=>array(100,900)) as $k=>$rng ) { $o[$k]=max($rng[0],min($rng[1],absint($o[$k]))); }
+		foreach ( array('design_border_radius'=>array(0,40),'design_max_width'=>array(320,1400),'banner_padding'=>array(0,64),'button_padding_y'=>array(0,32),'button_padding_x'=>array(0,64),'button_radius'=>array(0,40),'design_border_width'=>array(0,10),'header_font_size'=>array(10,64),'header_font_weight'=>array(100,900)) as $k=>$rng ) { $o[$k]=max($rng[0],min($rng[1],absint($o[$k]))); }
 		$fontFields=array('header_font_preset','body_font_preset','button_font_preset'); foreach($fontFields as $k){$o[$k]=$this->sanitize_font_preset($o[$k]);}
 		foreach(array('header_custom_font','body_custom_font','button_custom_font') as $k){$o[$k]=sanitize_text_field($o[$k]);}
 		foreach(array('design_bg_color','design_text_color','design_header_text_color','design_border_color','btn_accept_bg','btn_accept_text','btn_accept_border','btn_reject_bg','btn_reject_text','btn_reject_border','btn_settings_bg','btn_settings_text','btn_settings_border','btn_save_bg','btn_save_text','btn_save_border') as $k){$o[$k]=sanitize_hex_color($o[$k])?:$d[$k];}
+		foreach(array('btn_accept_hover_bg','btn_accept_hover_text','btn_accept_hover_border','btn_reject_hover_bg','btn_reject_hover_text','btn_reject_hover_border','btn_settings_hover_bg','btn_settings_hover_text','btn_settings_hover_border','btn_save_hover_bg','btn_save_hover_text','btn_save_hover_border') as $k){$v=sanitize_hex_color($o[$k]);$o[$k]=$v?:'';}
 		foreach(array('banner_title_en','banner_title_hu','banner_text_en','banner_text_hu','panel_intro_en','panel_intro_hu','analytics_desc_en','analytics_desc_hu','marketing_desc_en','marketing_desc_hu','personalization_desc_en','personalization_desc_hu','policy_link_text_en','policy_link_text_hu') as $k){$o[$k]=$this->sanitize_formatted_text($o[$k]);}
 		foreach(array('label_accept_all_en','label_accept_all_hu','label_reject_all_en','label_reject_all_hu','label_customize_en','label_customize_hu','label_save_choices_en','label_save_choices_hu') as $k){$o[$k]=$this->sanitize_button_html($o[$k]);}
 		foreach(array('label_reopen_en','label_reopen_hu') as $k){$o[$k]=sanitize_text_field(wp_strip_all_tags($o[$k]));}
@@ -337,7 +366,10 @@ class Lightweight_Consent_Mode {
 		<h2>General</h2><table class="form-table"><tr><th>Banner enabled</th><td><input type="checkbox" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_enabled]" value="1" <?php checked($o['banner_enabled'],1); ?>></td></tr><tr><th>Policy URL</th><td><input type="url" class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[policy_url]" value="<?php echo esc_attr($o['policy_url']); ?>"></td></tr><tr><th>Language mode</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[language_mode]"><option value="browser" <?php selected($o['language_mode'],'browser'); ?>>browser</option><option value="en" <?php selected($o['language_mode'],'en'); ?>>en</option><option value="hu" <?php selected($o['language_mode'],'hu'); ?>>hu</option></select></td></tr><tr><th>Banner preset</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_preset]"><option value="universal" <?php selected($o['banner_preset'],'universal'); ?>>universal</option><option value="kk" <?php selected($o['banner_preset'],'kk'); ?>>kk</option></select></td></tr></table>
 		<h2>Texts</h2><p>You can use: <strong>bold</strong>, <em>emphasis</em>, <br>, and links in long text fields. Button labels support <strong>bold</strong>, <b>bold</b>, <em>emphasis</em>.</p><table class="form-table"><tr><th>Banner title (EN)</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_title_en]" value="<?php echo esc_attr($o['banner_title_en']); ?>"></td></tr><tr><th>Banner title (HU)</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_title_hu]" value="<?php echo esc_attr($o['banner_title_hu']); ?>"></td></tr><tr><th>Banner text (EN)</th><td><textarea class="large-text" rows="3" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_text_en]"><?php echo esc_textarea($o['banner_text_en']); ?></textarea></td></tr><tr><th>Banner text (HU)</th><td><textarea class="large-text" rows="3" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_text_hu]"><?php echo esc_textarea($o['banner_text_hu']); ?></textarea></td></tr><tr><th>Policy link text (EN)</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[policy_link_text_en]" value="<?php echo esc_attr($o['policy_link_text_en']); ?>"></td></tr><tr><th>Policy link text (HU)</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[policy_link_text_hu]" value="<?php echo esc_attr($o['policy_link_text_hu']); ?>"></td></tr></table>
 		<h2>Design</h2><table class="form-table"><tr><th>Header text color</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_header_text_color]" value="<?php echo esc_attr($o['design_header_text_color']); ?>"></td></tr><tr><th>Header font preset</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[header_font_preset]"><option value="inherit" <?php selected($o['header_font_preset'],'inherit'); ?>>inherit</option><option value="system" <?php selected($o['header_font_preset'],'system'); ?>>system</option><option value="arial" <?php selected($o['header_font_preset'],'arial'); ?>>arial</option><option value="georgia" <?php selected($o['header_font_preset'],'georgia'); ?>>georgia</option><option value="custom" <?php selected($o['header_font_preset'],'custom'); ?>>custom</option></select></td></tr><tr><th>Header custom font family</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[header_custom_font]" value="<?php echo esc_attr($o['header_custom_font']); ?>"></td></tr><tr><th>Header font size (px)</th><td><input type="number" min="10" max="64" name="<?php echo esc_attr(self::OPTION_KEY); ?>[header_font_size]" value="<?php echo esc_attr($o['header_font_size']); ?>"></td></tr><tr><th>Header font weight</th><td><input type="number" min="100" max="900" step="100" name="<?php echo esc_attr(self::OPTION_KEY); ?>[header_font_weight]" value="<?php echo esc_attr($o['header_font_weight']); ?>"></td></tr><tr><th>Body font preset</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[body_font_preset]"><option value="inherit" <?php selected($o['body_font_preset'],'inherit'); ?>>inherit</option><option value="system" <?php selected($o['body_font_preset'],'system'); ?>>system</option><option value="arial" <?php selected($o['body_font_preset'],'arial'); ?>>arial</option><option value="georgia" <?php selected($o['body_font_preset'],'georgia'); ?>>georgia</option><option value="custom" <?php selected($o['body_font_preset'],'custom'); ?>>custom</option></select></td></tr><tr><th>Body custom font family</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[body_custom_font]" value="<?php echo esc_attr($o['body_custom_font']); ?>"></td></tr><tr><th>Background color</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_bg_color]" value="<?php echo esc_attr($o['design_bg_color']); ?>"></td></tr><tr><th>Text color</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_text_color]" value="<?php echo esc_attr($o['design_text_color']); ?>"></td></tr><tr><th>Border color</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_border_color]" value="<?php echo esc_attr($o['design_border_color']); ?>"></td></tr><tr><th>Border width (px)</th><td><input type="number" min="0" max="10" name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_border_width]" value="<?php echo esc_attr($o['design_border_width']); ?>"></td></tr><tr><th>Border radius (px)</th><td><input type="number" min="0" max="40" name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_border_radius]" value="<?php echo esc_attr($o['design_border_radius']); ?>"></td></tr><tr><th>Banner max width (px)</th><td><input type="number" min="320" max="1400" name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_max_width]" value="<?php echo esc_attr($o['design_max_width']); ?>"></td></tr><tr><th>Banner padding (px)</th><td><input type="number" min="0" max="64" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_padding]" value="<?php echo esc_attr($o['banner_padding']); ?>"></td></tr></table>
-		<h2>Buttons</h2><table class="form-table"><tr><th>Banner button order</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_order]" value="<?php echo esc_attr($o['banner_order']); ?>"><p><small>Allowed actions: accept_all,reject_all,settings</small></p></td></tr><tr><th>Button padding Y (px)</th><td><input type="number" min="0" max="32" name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_padding_y]" value="<?php echo esc_attr($o['button_padding_y']); ?>"></td></tr><tr><th>Button padding X (px)</th><td><input type="number" min="0" max="64" name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_padding_x]" value="<?php echo esc_attr($o['button_padding_x']); ?>"></td></tr><tr><th>Button font preset</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_font_preset]"><option value="inherit" <?php selected($o['button_font_preset'],'inherit'); ?>>inherit</option><option value="system" <?php selected($o['button_font_preset'],'system'); ?>>system</option><option value="arial" <?php selected($o['button_font_preset'],'arial'); ?>>arial</option><option value="georgia" <?php selected($o['button_font_preset'],'georgia'); ?>>georgia</option><option value="custom" <?php selected($o['button_font_preset'],'custom'); ?>>custom</option></select></td></tr><tr><th>Button custom font family</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_custom_font]" value="<?php echo esc_attr($o['button_custom_font']); ?>"></td></tr><?php foreach ( array('accept'=>'accept','reject'=>'reject','settings'=>'settings','save'=>'save') as $k=>$slug ) : ?><tr><th><?php echo esc_html( ucfirst($k) ); ?> button colors</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_<?php echo esc_attr($slug); ?>_bg]" value="<?php echo esc_attr($o['btn_'.$slug.'_bg']); ?>"> <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_<?php echo esc_attr($slug); ?>_text]" value="<?php echo esc_attr($o['btn_'.$slug.'_text']); ?>"> <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_<?php echo esc_attr($slug); ?>_border]" value="<?php echo esc_attr($o['btn_'.$slug.'_border']); ?>"></td></tr><?php endforeach; ?></table>
+		<h2>Buttons</h2><table class="form-table"><tr><th>Banner button order</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_order]" value="<?php echo esc_attr($o['banner_order']); ?>"><p><small>Allowed actions: accept_all,reject_all,settings</small></p></td></tr><tr><th>Panel button order</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[panel_order]" value="<?php echo esc_attr($o['panel_order']); ?>"><p><small>Allowed actions: save_choices,reject_all. Default: save_choices</small></p></td></tr><tr><th>Button border radius (px)</th><td><input type="number" min="0" max="40" name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_radius]" value="<?php echo esc_attr($o['button_radius']); ?>"></td></tr><tr><th>Button padding Y (px)</th><td><input type="number" min="0" max="32" name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_padding_y]" value="<?php echo esc_attr($o['button_padding_y']); ?>"></td></tr><tr><th>Button padding X (px)</th><td><input type="number" min="0" max="64" name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_padding_x]" value="<?php echo esc_attr($o['button_padding_x']); ?>"></td></tr><tr><th>Button font preset</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_font_preset]"><option value="inherit" <?php selected($o['button_font_preset'],'inherit'); ?>>inherit</option><option value="system" <?php selected($o['button_font_preset'],'system'); ?>>system</option><option value="arial" <?php selected($o['button_font_preset'],'arial'); ?>>arial</option><option value="georgia" <?php selected($o['button_font_preset'],'georgia'); ?>>georgia</option><option value="custom" <?php selected($o['button_font_preset'],'custom'); ?>>custom</option></select></td></tr><tr><th>Button custom font family</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_custom_font]" value="<?php echo esc_attr($o['button_custom_font']); ?>"></td></tr><tr><th>Accept all button</th><td>Background color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_accept_bg]" value="<?php echo esc_attr($o['btn_accept_bg']); ?>"> Text color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_accept_text]" value="<?php echo esc_attr($o['btn_accept_text']); ?>"> Border color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_accept_border]" value="<?php echo esc_attr($o['btn_accept_border']); ?>"><br>Hover background color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_accept_hover_bg]" value="<?php echo esc_attr($o['btn_accept_hover_bg']); ?>"> Hover text color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_accept_hover_text]" value="<?php echo esc_attr($o['btn_accept_hover_text']); ?>"> Hover border color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_accept_hover_border]" value="<?php echo esc_attr($o['btn_accept_hover_border']); ?>"></td></tr>
+<tr><th>Reject all button</th><td>Background color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_reject_bg]" value="<?php echo esc_attr($o['btn_reject_bg']); ?>"> Text color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_reject_text]" value="<?php echo esc_attr($o['btn_reject_text']); ?>"> Border color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_reject_border]" value="<?php echo esc_attr($o['btn_reject_border']); ?>"><br>Hover background color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_reject_hover_bg]" value="<?php echo esc_attr($o['btn_reject_hover_bg']); ?>"> Hover text color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_reject_hover_text]" value="<?php echo esc_attr($o['btn_reject_hover_text']); ?>"> Hover border color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_reject_hover_border]" value="<?php echo esc_attr($o['btn_reject_hover_border']); ?>"></td></tr>
+<tr><th>Customize button</th><td>Background color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_settings_bg]" value="<?php echo esc_attr($o['btn_settings_bg']); ?>"> Text color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_settings_text]" value="<?php echo esc_attr($o['btn_settings_text']); ?>"> Border color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_settings_border]" value="<?php echo esc_attr($o['btn_settings_border']); ?>"><br>Hover background color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_settings_hover_bg]" value="<?php echo esc_attr($o['btn_settings_hover_bg']); ?>"> Hover text color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_settings_hover_text]" value="<?php echo esc_attr($o['btn_settings_hover_text']); ?>"> Hover border color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_settings_hover_border]" value="<?php echo esc_attr($o['btn_settings_hover_border']); ?>"></td></tr>
+<tr><th>Save choices button</th><td>Background color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_save_bg]" value="<?php echo esc_attr($o['btn_save_bg']); ?>"> Text color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_save_text]" value="<?php echo esc_attr($o['btn_save_text']); ?>"> Border color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_save_border]" value="<?php echo esc_attr($o['btn_save_border']); ?>"><br>Hover background color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_save_hover_bg]" value="<?php echo esc_attr($o['btn_save_hover_bg']); ?>"> Hover text color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_save_hover_text]" value="<?php echo esc_attr($o['btn_save_hover_text']); ?>"> Hover border color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_save_hover_border]" value="<?php echo esc_attr($o['btn_save_hover_border']); ?>"></td></tr></table>
 		<h2>Layout</h2><table class="form-table"><tr><th>Desktop position</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[desktop_position]"><option value="center" <?php selected($o['desktop_position'],'center'); ?>>center</option><option value="bottom_center" <?php selected($o['desktop_position'],'bottom_center'); ?>>bottom_center</option><option value="bottom_left" <?php selected($o['desktop_position'],'bottom_left'); ?>>bottom_left</option><option value="bottom_right" <?php selected($o['desktop_position'],'bottom_right'); ?>>bottom_right</option></select></td></tr><tr><th>Desktop layout</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[desktop_layout]"><option value="box" <?php selected($o['desktop_layout'],'box'); ?>>box</option><option value="sheet" <?php selected($o['desktop_layout'],'sheet'); ?>>sheet</option></select></td></tr><tr><th>Mobile layout</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[mobile_layout]"><option value="sheet" <?php selected($o['mobile_layout'],'sheet'); ?>>sheet</option><option value="box" <?php selected($o['mobile_layout'],'box'); ?>>box</option></select></td></tr></table>
 		<h2>GTM / Consent Mode</h2><table class="form-table"><tr><th>GTM Container ID</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[gtm_container_id]" value="<?php echo esc_attr($o['gtm_container_id']); ?>"></td></tr><tr><th>Inject GTM snippet</th><td><input type="checkbox" name="<?php echo esc_attr(self::OPTION_KEY); ?>[gtm_inject]" value="1" <?php checked($o['gtm_inject'],1); ?>></td></tr><tr><th>Default analytics checked</th><td><input type="checkbox" name="<?php echo esc_attr(self::OPTION_KEY); ?>[default_analytics]" value="1" <?php checked($o['default_analytics'],1); ?>></td></tr><tr><th>Default marketing checked</th><td><input type="checkbox" name="<?php echo esc_attr(self::OPTION_KEY); ?>[default_marketing]" value="1" <?php checked($o['default_marketing'],1); ?>></td></tr><tr><th>Default personalization checked</th><td><input type="checkbox" name="<?php echo esc_attr(self::OPTION_KEY); ?>[default_personalization]" value="1" <?php checked($o['default_personalization'],1); ?>></td></tr></table><?php submit_button(); ?></form></div><?php
 	}

@@ -1,6 +1,6 @@
 # Lightweight Consent Mode
 
-Version: **0.3.2**
+Version: **0.3.3**
 
 ## Installation
 1. Copy plugin folder to `wp-content/plugins/lightweight-consent-mode/`.
@@ -76,3 +76,8 @@ The plugin adds a **Settings** link on the WordPress Plugins page via `plugin_ac
 - Consent Initialization is for consent-setup tags, not normal GA4/Ads/marketing tags.
 - Use `kk_consent_update` Custom Event trigger only for tags that should fire immediately after consent changes.
 - Check `window.dataLayer` in browser console for consent events and state changes.
+
+
+- Button radius is configurable.
+- Button hover colors are configurable per action.
+- Settings panel shows Save choices by default.
