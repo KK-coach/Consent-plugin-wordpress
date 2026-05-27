@@ -25,3 +25,5 @@
   .lcm-consent-root[data-mobile-layout="sheet"] .lcm-consent-banner{max-width:100%;border-radius:16px 16px 0 0;border-left:0;border-right:0;border-bottom:0}
   .lcm-consent-root[data-mobile-layout="box"]{align-items:center;justify-content:center;padding:12px}
 }
+
+.lcm-consent-panel small{display:block;font-size:12px;opacity:.8}

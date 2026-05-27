@@ -67,3 +67,12 @@ Actions are bound via `data-consent-action`:
 ## Migration note
 This version uses `lcm_options` as the main settings key.
 Backward compatibility is preserved: if `lcm_options` does not exist but `kk_lwc_options` exists, legacy options are migrated automatically.
+
+
+## Frontend language selection
+- Default mode is `browser`.
+- Browser language is detected using `navigator.languages` with fallback to `navigator.language`.
+- Supported frontend languages: `en`, `hu`.
+- Resolution order: first `hu*`, then `en*`, else fallback to `en`.
+- English is the global fallback when browser language is unsupported.
+- English is also used when a Hungarian translation field is empty.

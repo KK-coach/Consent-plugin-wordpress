@@ -47,7 +47,7 @@ class Lightweight_Consent_Mode {
 			'gtm_container_id'             => '',
 			'gtm_inject'                   => 0,
 			'banner_preset'                => 'universal',
-			'banner_text_hu'               => 'Sütiket és hasonló technológiákat használunk az oldal működtetéséhez, analitikához és marketing méréshez. A szükséges sütik mindig aktívak. Az analitikai, marketing és személyre szabási célú mérések csak hozzájárulás után indulnak.',
+			'banner_text_hu'               => '',
 			'banner_text_en'               => 'We use cookies and similar technologies to operate this website, analytics, marketing measurement and personalization. Necessary cookies are always active. Analytics, marketing and personalization measurement starts only after consent.',
 			'policy_url'                   => home_url( '/' ),
 			'cookie_days'                  => 180,
@@ -70,11 +70,12 @@ class Lightweight_Consent_Mode {
 			'desktop_position'             => 'center',
 			'desktop_layout'               => 'box',
 			'mobile_layout'                => 'sheet',
-			'label_accept_all_hu'          => 'Elfogadom',
-			'label_reject_all_hu'          => 'Elutasítom',
-			'label_customize_hu'           => 'Beállítások',
-			'label_save_choices_hu'        => 'Mentés',
-			'label_reopen_hu'              => 'Süti beállítások',
+			'language_mode'                 => 'browser',
+			'label_accept_all_hu'          => '',
+			'label_reject_all_hu'          => '',
+			'label_customize_hu'           => '',
+			'label_save_choices_hu'        => '',
+			'label_reopen_hu'              => '',
 			'label_accept_all_en'          => 'Accept all',
 			'label_reject_all_en'          => 'Reject all',
 			'label_customize_en'           => 'Customize',
@@ -179,17 +180,40 @@ class Lightweight_Consent_Mode {
 			'defaultAnalytics'       => ! empty( $options['default_analytics'] ),
 			'defaultMarketing'       => ! empty( $options['default_marketing'] ),
 			'defaultPersonalization' => ! empty( $options['default_personalization'] ),
-			'labels'                 => array(
-				'accept_all'      => $options[ 'label_accept_all_' . $lang ],
-				'reject_all'      => $options[ 'label_reject_all_' . $lang ],
-				'customize'       => $options[ 'label_customize_' . $lang ],
-				'save_choices'    => $options[ 'label_save_choices_' . $lang ],
-				'reopen'          => $options[ 'label_reopen_' . $lang ],
-				'more_info'       => ( 'hu' === $lang ) ? 'Bővebb információ' : 'More information',
-				'necessary'       => ( 'hu' === $lang ) ? 'Szükséges sütik' : 'Necessary cookies',
-				'analytics'       => ( 'hu' === $lang ) ? 'Analitika' : 'Analytics',
-				'marketing'       => ( 'hu' === $lang ) ? 'Marketing mérés' : 'Marketing measurement',
-				'personalization' => ( 'hu' === $lang ) ? 'Személyre szabás' : 'Personalization',
+			'languageMode'           => $options['language_mode'],
+			'translations'           => array(
+				'en' => array(
+					'banner_text'      => $options['banner_text_en'],
+					'accept_all'       => $options['label_accept_all_en'],
+					'reject_all'       => $options['label_reject_all_en'],
+					'customize'        => $options['label_customize_en'],
+					'save_choices'     => $options['label_save_choices_en'],
+					'reopen'           => $options['label_reopen_en'],
+					'more_info'        => 'More information',
+					'necessary'        => 'Necessary cookies',
+					'analytics'        => 'Analytics',
+					'marketing'        => 'Marketing measurement',
+					'personalization'  => 'Personalization',
+					'analytics_desc'   => 'Allow website analytics measurement.',
+					'marketing_desc'   => 'Allow marketing and ad measurement tags.',
+					'personalization_desc' => 'Allow personalized content and experiences.',
+				),
+				'hu' => array(
+					'banner_text'      => $options['banner_text_hu'],
+					'accept_all'       => $options['label_accept_all_hu'],
+					'reject_all'       => $options['label_reject_all_hu'],
+					'customize'        => $options['label_customize_hu'],
+					'save_choices'     => $options['label_save_choices_hu'],
+					'reopen'           => $options['label_reopen_hu'],
+					'more_info'        => '',
+					'necessary'        => '',
+					'analytics'        => '',
+					'marketing'        => '',
+					'personalization'  => '',
+					'analytics_desc'   => '',
+					'marketing_desc'   => '',
+					'personalization_desc' => '',
+				),
 			),
 			'preset'                 => $preset,
 		);
@@ -253,9 +277,9 @@ class Lightweight_Consent_Mode {
 				<div class="lcm-consent-actions"><?php $this->render_buttons( $presets[ $preset ]['banner_buttons'] ); ?></div>
 				<div class="lcm-consent-panel" hidden>
 					<label><input type="checkbox" checked disabled> <span class="lcm-necessary-label"></span></label>
-					<label><input type="checkbox" class="lcm-analytics"> <span class="lcm-analytics-label"></span></label>
-					<label><input type="checkbox" class="lcm-marketing"> <span class="lcm-marketing-label"></span></label>
-					<label><input type="checkbox" class="lcm-personalization"> <span class="lcm-personalization-label"></span></label>
+					<label><input type="checkbox" class="lcm-analytics"> <span class="lcm-analytics-label"></span> <small class="lcm-analytics-desc"></small></label>
+					<label><input type="checkbox" class="lcm-marketing"> <span class="lcm-marketing-label"></span> <small class="lcm-marketing-desc"></small></label>
+					<label><input type="checkbox" class="lcm-personalization"> <span class="lcm-personalization-label"></span> <small class="lcm-personalization-desc"></small></label>
 					<div class="lcm-consent-panel-actions"><?php $this->render_buttons( $presets[ $preset ]['panel_buttons'] ); ?></div>
 				</div>
 			</div>
@@ -291,6 +315,7 @@ class Lightweight_Consent_Mode {
 		$output['desktop_layout']          = in_array( $output['desktop_layout'], array( 'box', 'sheet' ), true ) ? $output['desktop_layout'] : 'box';
 		$output['mobile_layout']           = in_array( $output['mobile_layout'], array( 'sheet', 'box' ), true ) ? $output['mobile_layout'] : 'sheet';
 		$output['font_preset']             = in_array( $output['font_preset'], array( 'inherit', 'system', 'arial', 'georgia', 'custom' ), true ) ? $output['font_preset'] : 'system';
+		$output['language_mode']            = in_array( $output['language_mode'], array( 'browser', 'en', 'hu' ), true ) ? $output['language_mode'] : 'browser';
 		$output['font_custom']             = sanitize_text_field( $output['font_custom'] );
 		$output['gtm_container_id']        = preg_replace( '/[^A-Z0-9\-]/', '', strtoupper( sanitize_text_field( $output['gtm_container_id'] ) ) );
 		$output['policy_url']              = esc_url_raw( $output['policy_url'] );
@@ -325,19 +350,19 @@ class Lightweight_Consent_Mode {
 			<tr><th>Cookie days</th><td><input type="number" min="1" max="730" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[cookie_days]" value="<?php echo esc_attr( $options['cookie_days'] ); ?>"></td></tr>
 			<tr><th>Policy URL</th><td><input type="url" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[policy_url]" value="<?php echo esc_attr( $options['policy_url'] ); ?>"></td></tr>
 			<tr><th>Logo URL</th><td><input type="url" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[logo_url]" value="<?php echo esc_attr( $options['logo_url'] ); ?>"></td></tr>
-			<tr><th>Reopen icon only</th><td><label><input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[reopen_icon_only]" value="1" <?php checked( $options['reopen_icon_only'], 1 ); ?>> Yes</label></td></tr></table>
+			<tr><th>Reopen icon only</th><td><label><input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[reopen_icon_only]" value="1" <?php checked( $options['reopen_icon_only'], 1 ); ?>> Yes</label></td></tr>\n			<tr><th>Frontend language mode</th><td><select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[language_mode]"><option value="browser" <?php selected( $options['language_mode'], 'browser' ); ?>>browser</option><option value="en" <?php selected( $options['language_mode'], 'en' ); ?>>en</option><option value="hu" <?php selected( $options['language_mode'], 'hu' ); ?>>hu</option></select></td></tr></table>
 
 			<h2><?php echo esc_html__( 'Texts', 'lightweight-consent-mode' ); ?></h2>
 			<table class="form-table"><tr><th>Banner text (HU)</th><td><textarea class="large-text" rows="3" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner_text_hu]"><?php echo esc_textarea( $options['banner_text_hu'] ); ?></textarea></td></tr>
 			<tr><th>Banner text (EN)</th><td><textarea class="large-text" rows="3" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner_text_en]"><?php echo esc_textarea( $options['banner_text_en'] ); ?></textarea></td></tr>
-			<tr><th>HU Accept all</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_accept_all_hu]" value="<?php echo esc_attr( $options['label_accept_all_hu'] ); ?>"></td></tr>
-			<tr><th>HU Reject all</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_reject_all_hu]" value="<?php echo esc_attr( $options['label_reject_all_hu'] ); ?>"></td></tr>
-			<tr><th>HU Customize</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_customize_hu]" value="<?php echo esc_attr( $options['label_customize_hu'] ); ?>"></td></tr>
-			<tr><th>HU Save choices</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_save_choices_hu]" value="<?php echo esc_attr( $options['label_save_choices_hu'] ); ?>"></td></tr>
-			<tr><th>EN Accept all</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_accept_all_en]" value="<?php echo esc_attr( $options['label_accept_all_en'] ); ?>"></td></tr>
-			<tr><th>EN Reject all</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_reject_all_en]" value="<?php echo esc_attr( $options['label_reject_all_en'] ); ?>"></td></tr>
-			<tr><th>EN Customize</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_customize_en]" value="<?php echo esc_attr( $options['label_customize_en'] ); ?>"></td></tr>
-			<tr><th>EN Save choices</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_save_choices_en]" value="<?php echo esc_attr( $options['label_save_choices_en'] ); ?>"></td></tr></table>
+			<tr><th>HU accept_all</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_accept_all_hu]" value="<?php echo esc_attr( $options['label_accept_all_hu'] ); ?>"></td></tr>
+			<tr><th>HU reject_all</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_reject_all_hu]" value="<?php echo esc_attr( $options['label_reject_all_hu'] ); ?>"></td></tr>
+			<tr><th>HU customize</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_customize_hu]" value="<?php echo esc_attr( $options['label_customize_hu'] ); ?>"></td></tr>
+			<tr><th>HU save_choices</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_save_choices_hu]" value="<?php echo esc_attr( $options['label_save_choices_hu'] ); ?>"></td></tr>
+			<tr><th>EN accept_all</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_accept_all_en]" value="<?php echo esc_attr( $options['label_accept_all_en'] ); ?>"></td></tr>
+			<tr><th>EN reject_all</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_reject_all_en]" value="<?php echo esc_attr( $options['label_reject_all_en'] ); ?>"></td></tr>
+			<tr><th>EN customize</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_customize_en]" value="<?php echo esc_attr( $options['label_customize_en'] ); ?>"></td></tr>
+			<tr><th>EN save_choices</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_save_choices_en]" value="<?php echo esc_attr( $options['label_save_choices_en'] ); ?>"></td></tr></table>
 
 			<h2><?php echo esc_html__( 'Design', 'lightweight-consent-mode' ); ?></h2>
 			<table class="form-table"><tr><th>Background color</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[design_bg_color]" value="<?php echo esc_attr( $options['design_bg_color'] ); ?>"></td></tr>

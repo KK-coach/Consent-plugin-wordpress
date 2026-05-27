@@ -14,25 +14,51 @@
   var policyLink = root.querySelector('.lcm-consent-policy');
   var logo = root.querySelector('.lcm-consent-logo');
 
-  var labels = config.labels || {};
-  var defaultLabels = { accept_all: 'Accept all', reject_all: 'Reject all', customize: 'Customize', save_choices: 'Save choices' };
+  var translations = config.translations || {};
 
-  root.querySelector('.lcm-necessary-label').textContent = labels.necessary || 'Necessary cookies';
-  root.querySelector('.lcm-analytics-label').textContent = labels.analytics || 'Analytics';
-  root.querySelector('.lcm-marketing-label').textContent = labels.marketing || 'Marketing';
-  root.querySelector('.lcm-personalization-label').textContent = labels.personalization || 'Personalization';
+  function detectBrowserLanguage() {
+    var langs = Array.isArray(navigator.languages) && navigator.languages.length ? navigator.languages : [navigator.language || 'en'];
+    for (var i = 0; i < langs.length; i++) {
+      var l = String(langs[i] || '').toLowerCase();
+      if (l.indexOf('hu') === 0) return 'hu';
+      if (l.indexOf('en') === 0) return 'en';
+    }
+    return 'en';
+  }
+
+  var selectedLang = 'en';
+  if (config.languageMode === 'hu' || config.languageMode === 'en') {
+    selectedLang = config.languageMode;
+  } else {
+    selectedLang = detectBrowserLanguage();
+  }
+
+  function t(key) {
+    if (translations[selectedLang] && translations[selectedLang][key]) return translations[selectedLang][key];
+    if (translations.en && translations.en[key]) return translations.en[key];
+    return key;
+  }
+
+  root.querySelector('.lcm-consent-text').textContent = t('banner_text');
+  root.querySelector('.lcm-necessary-label').textContent = t('necessary');
+  root.querySelector('.lcm-analytics-label').textContent = t('analytics');
+  root.querySelector('.lcm-marketing-label').textContent = t('marketing');
+  root.querySelector('.lcm-personalization-label').textContent = t('personalization');
+  root.querySelector('.lcm-analytics-desc').textContent = t('analytics_desc');
+  root.querySelector('.lcm-marketing-desc').textContent = t('marketing_desc');
+  root.querySelector('.lcm-personalization-desc').textContent = t('personalization_desc');
 
   root.querySelectorAll('[data-label-key]').forEach(function (button) {
-    var key = button.getAttribute('data-label-key');
-    button.textContent = labels[key] || defaultLabels[key] || key;
+    button.textContent = t(button.getAttribute('data-label-key'));
   });
 
-  reopenBtn.textContent = config.reopenIconOnly ? '⚙' : (labels.reopen || 'Cookie settings');
+  reopenBtn.textContent = config.reopenIconOnly ? '⚙' : t('reopen');
+  reopenBtn.setAttribute('aria-label', t('reopen'));
   if (!config.reopenIconOnly) reopenBtn.classList.add('lcm-consent-reopen-text');
 
   if (config.policyUrl) {
     policyLink.href = config.policyUrl;
-    policyLink.textContent = labels.more_info || 'More information';
+    policyLink.textContent = t('more_info');
   }
 
   if (config.logoUrl) {
