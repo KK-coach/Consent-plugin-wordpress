@@ -45,6 +45,7 @@
     return '';
   }
 
+  root.querySelector('.lcm-consent-title').innerHTML = tHtml('banner_title');
   root.querySelector('.lcm-consent-text').innerHTML = tHtml('banner_text');
   root.querySelector('.lcm-necessary-label').textContent = t('necessary');
   root.querySelector('.lcm-analytics-label').textContent = t('analytics');

@@ -3,7 +3,7 @@
  * Plugin Name: Lightweight Consent Mode
  * Plugin URI: https://example.com
  * Description: Lightweight consent banner for WordPress with Google Tag Manager and Google Consent Mode v2 support.
- * Version: 0.2.0
+ * Version: 0.3.0
  * Author: Consent Plugin
  * Author URI: https://example.com
  * Text Domain: lightweight-consent-mode
@@ -13,8 +13,9 @@
 defined( 'ABSPATH' ) || exit;
 
 class Lightweight_Consent_Mode {
-	const OPTION_KEY     = 'lcm_options';
-	const LEGACY_OPTION  = 'kk_lwc_options';
+	const LCM_VERSION   = '0.3.0';
+	const OPTION_KEY    = 'lcm_options';
+	const LEGACY_OPTION = 'kk_lwc_options';
 
 	public function __construct() {
 		add_action( 'init', array( $this, 'load_textdomain' ) );
@@ -26,6 +27,13 @@ class Lightweight_Consent_Mode {
 		add_action( 'wp_footer', array( $this, 'render_banner_markup' ) );
 		add_action( 'wp_head', array( $this, 'maybe_print_gtm_head' ), 1 );
 		add_action( 'wp_body_open', array( $this, 'maybe_print_gtm_noscript' ) );
+		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_action_links' ) );
+	}
+
+	public function plugin_action_links( $links ) {
+		$url = admin_url( 'options-general.php?page=lightweight-consent-mode' );
+		array_unshift( $links, '<a href="' . esc_url( $url ) . '">Settings</a>' );
+		return $links;
 	}
 
 	public function load_textdomain() {
@@ -42,66 +50,78 @@ class Lightweight_Consent_Mode {
 
 	private function defaults() {
 		return array(
-			'banner_enabled'               => 1,
-			'consent_version'              => 'v1',
-			'gtm_container_id'             => '',
-			'gtm_inject'                   => 0,
-			'banner_preset'                => 'universal',
-			'banner_text_hu'               => '',
-			'banner_text_en'               => 'We use cookies and similar technologies to operate this website, analytics, marketing measurement and personalization. Necessary cookies are always active. Analytics, marketing and personalization measurement starts only after consent.',
-			'policy_url'                   => home_url( '/' ),
-			'panel_intro_hu'               => '',
-			'panel_intro_en'               => 'Manage your consent preferences below.',
-			'analytics_desc_hu'            => '',
-			'analytics_desc_en'            => 'Allow website analytics measurement.',
-			'marketing_desc_hu'            => '',
-			'marketing_desc_en'            => 'Allow marketing and ad measurement tags.',
-			'personalization_desc_hu'      => '',
-			'personalization_desc_en'      => 'Allow personalized content and experiences.',
-			'policy_link_text_hu'          => '',
-			'policy_link_text_en'          => 'More information',
-			'cookie_days'                  => 180,
-			'logo_url'                     => '',
-			'reopen_icon_only'             => 1,
-			'default_analytics'            => 1,
-			'default_marketing'            => 1,
-			'default_personalization'      => 1,
-			'design_bg_color'              => '#e8e2d8',
-			'design_text_color'            => '#111111',
-			'design_primary_bg'            => '#ffffff',
-			'design_primary_text'          => '#111111',
-			'design_secondary_bg'          => '#ffffff',
-			'design_secondary_text'        => '#111111',
-			'design_border_color'          => '#d4d4d4',
-			'design_border_radius'         => 14,
-			'design_max_width'             => 860,
-			'font_preset'                  => 'system',
-			'font_custom'                  => '',
-			'desktop_position'             => 'center',
-			'desktop_layout'               => 'box',
-			'mobile_layout'                => 'sheet',
-			'language_mode'                 => 'browser',
-			'label_accept_all_hu'          => '',
-			'label_reject_all_hu'          => '',
-			'label_customize_hu'           => '',
-			'label_save_choices_hu'        => '',
-			'label_reopen_hu'              => '',
-			'label_accept_all_en'          => 'Accept all',
-			'label_reject_all_en'          => 'Reject all',
-			'label_customize_en'           => 'Customize',
-			'label_save_choices_en'        => 'Save choices',
-			'label_reopen_en'              => 'Cookie settings',
-			'debug_mode'                   => 0,
+			'banner_enabled'            => 1,
+			'language_mode'             => 'browser',
+			'banner_preset'             => 'universal',
+			'banner_order'              => 'accept_all,reject_all,settings',
+			'consent_version'           => 'v1',
+			'cookie_days'               => 180,
+			'policy_url'                => home_url( '/' ),
+			'logo_url'                  => '',
+			'reopen_icon_only'          => 1,
+			'default_analytics'         => 1,
+			'default_marketing'         => 1,
+			'default_personalization'   => 1,
+			'desktop_position'          => 'center',
+			'desktop_layout'            => 'box',
+			'mobile_layout'             => 'sheet',
+			'design_bg_color'           => '#e8e2d8',
+			'design_text_color'         => '#111111',
+			'design_header_text_color'  => '#111111',
+			'design_border_color'       => '#d4d4d4',
+			'design_border_width'       => 1,
+			'design_border_radius'      => 14,
+			'design_max_width'          => 860,
+			'banner_padding'            => 10,
+			'header_font_preset'        => 'inherit',
+			'header_custom_font'        => '',
+			'header_font_size'          => 22,
+			'header_font_weight'        => 700,
+			'body_font_preset'          => 'inherit',
+			'body_custom_font'          => '',
+			'button_font_preset'        => 'inherit',
+			'button_custom_font'        => '',
+			'btn_accept_bg'             => '#ffffff', 'btn_accept_text' => '#111111', 'btn_accept_border' => '#111111',
+			'btn_reject_bg'             => '#111111', 'btn_reject_text' => '#ffffff', 'btn_reject_border' => '#111111',
+			'btn_settings_bg'           => '#ffffff', 'btn_settings_text' => '#111111', 'btn_settings_border' => '#111111',
+			'btn_save_bg'               => '#ffffff', 'btn_save_text' => '#111111', 'btn_save_border' => '#111111',
+			'banner_title_en'           => 'Your privacy choices',
+			'banner_title_hu'           => '',
+			'banner_text_en'            => 'We use cookies and similar technologies to operate this website, analytics, marketing measurement and personalization.',
+			'banner_text_hu'            => '',
+			'panel_intro_en'            => 'Manage your consent preferences below.',
+			'panel_intro_hu'            => '',
+			'analytics_desc_en'         => 'Allow website analytics measurement.',
+			'analytics_desc_hu'         => '',
+			'marketing_desc_en'         => 'Allow marketing and ad measurement tags.',
+			'marketing_desc_hu'         => '',
+			'personalization_desc_en'   => 'Allow personalized content and experiences.',
+			'personalization_desc_hu'   => '',
+			'policy_link_text_en'       => 'More information',
+			'policy_link_text_hu'       => '',
+			'label_accept_all_en'       => 'Accept all', 'label_accept_all_hu' => '',
+			'label_reject_all_en'       => 'Reject all', 'label_reject_all_hu' => '',
+			'label_customize_en'        => 'Customize',  'label_customize_hu' => '',
+			'label_save_choices_en'     => 'Save choices','label_save_choices_hu' => '',
+			'label_reopen_en'           => 'Cookie settings', 'label_reopen_hu' => '',
+			'gtm_container_id'          => '',
+			'gtm_inject'                => 0,
+			'debug_mode'                => 0,
 		);
 	}
 
-	private function get_options() {
-		return wp_parse_args( get_option( self::OPTION_KEY, array() ), $this->defaults() );
-	}
-
-	private function current_lang() {
-		$locale = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
-		return ( 0 === strpos( strtolower( $locale ), 'hu' ) ) ? 'hu' : 'en';
+	private function get_options() { return wp_parse_args( get_option( self::OPTION_KEY, array() ), $this->defaults() ); }
+	private function allowed_html_text() { return array( 'strong'=>array(), 'b'=>array(), 'em'=>array(), 'br'=>array(), 'a'=>array('href'=>true,'target'=>true,'rel'=>true) ); }
+	private function allowed_html_button() { return array( 'strong'=>array(), 'b'=>array(), 'em'=>array() ); }
+	private function sanitize_formatted_text( $v ) { return wp_kses( (string) $v, $this->allowed_html_text() ); }
+	private function sanitize_button_html( $v ) { return wp_kses( (string) $v, $this->allowed_html_button() ); }
+	private function sanitize_font_preset( $v ) { return in_array( $v, array( 'inherit','system','arial','georgia','custom' ), true ) ? $v : 'inherit'; }
+	private function font_family_from( $preset, $custom ) {
+		if ( 'system' === $preset ) { return '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif'; }
+		if ( 'arial' === $preset ) { return 'Arial, sans-serif'; }
+		if ( 'georgia' === $preset ) { return 'Georgia, serif'; }
+		if ( 'custom' === $preset ) { return $custom; }
+		return 'inherit';
 	}
 
 	private function get_presets() {
@@ -118,9 +138,9 @@ class Lightweight_Consent_Mode {
 			),
 			'universal' => array(
 				'banner_buttons' => array(
+					array( 'action' => 'accept_all', 'label_key' => 'accept_all', 'style' => 'primary' ),
 					array( 'action' => 'reject_all', 'label_key' => 'reject_all', 'style' => 'outline' ),
 					array( 'action' => 'settings', 'label_key' => 'customize', 'style' => 'secondary' ),
-					array( 'action' => 'accept_all', 'label_key' => 'accept_all', 'style' => 'primary' ),
 				),
 				'panel_buttons' => array(
 					array( 'action' => 'reject_all', 'label_key' => 'reject_all', 'style' => 'outline' ),
@@ -130,108 +150,60 @@ class Lightweight_Consent_Mode {
 		);
 	}
 
+	private function ordered_banner_buttons( $buttons, $order_string ) {
+		$allowed = array( 'accept_all', 'reject_all', 'settings' );
+		$parts = array_map( 'trim', explode( ',', (string) $order_string ) );
+		if ( 3 !== count( $parts ) || count( array_unique( $parts ) ) !== 3 || array_diff( $parts, $allowed ) ) {
+			$parts = array( 'accept_all', 'reject_all', 'settings' );
+		}
+		$map = array();
+		foreach ( $buttons as $b ) { $map[ $b['action'] ] = $b; }
+		$out = array();
+		foreach ( $parts as $a ) { if ( isset( $map[ $a ] ) ) { $out[] = $map[ $a ]; } }
+		foreach ( $buttons as $b ) { if ( ! in_array( $b['action'], $parts, true ) ) { $out[] = $b; } }
+		return $out;
+	}
+
 	private function render_buttons( $buttons ) {
 		foreach ( $buttons as $button ) {
-			$style = isset( $button['style'] ) ? sanitize_html_class( $button['style'] ) : 'secondary';
-			echo '<button type="button" class="lcm-btn lcm-btn--' . esc_attr( $style ) . '" data-consent-action="' . esc_attr( $button['action'] ) . '" data-label-key="' . esc_attr( $button['label_key'] ) . '"></button>';
+			echo '<button type="button" class="lcm-btn lcm-btn--' . esc_attr( sanitize_html_class( $button['style'] ) ) . '" data-consent-action="' . esc_attr( $button['action'] ) . '" data-label-key="' . esc_attr( $button['label_key'] ) . '"></button>';
 		}
-	}
-
-
-	private function allowed_html_text() {
-		return array(
-			'strong' => array(),
-			'b'      => array(),
-			'em'     => array(),
-			'br'     => array(),
-			'a'      => array(
-				'href'   => true,
-				'target' => true,
-				'rel'    => true,
-			),
-		);
-	}
-
-	private function allowed_html_button() {
-		return array(
-			'strong' => array(),
-			'b'      => array(),
-			'em'     => array(),
-		);
-	}
-
-	private function sanitize_formatted_text( $value ) {
-		$value = wp_kses( (string) $value, $this->allowed_html_text() );
-		return preg_replace_callback("/<a\\s+([^>]+)>/i", function ( $m ) {
-			$attrs = $m[1];
-			preg_match( "/href\\s*=\\s*(['\"])(.*?)\\1/i", $attrs, $hrefm );
-			$href = isset( $hrefm[2] ) ? esc_url( $hrefm[2] ) : '';
-			preg_match( "/target\\s*=\\s*(['\"])(.*?)\\1/i", $attrs, $tm );
-			$target = isset( $tm[2] ) && '_blank' === strtolower( $tm[2] ) ? '_blank' : '';
-			preg_match( "/rel\\s*=\\s*(['\"])(.*?)\\1/i", $attrs, $rm );
-			$rel = isset( $rm[2] ) ? strtolower( $rm[2] ) : '';
-			if ( '_blank' === $target ) {
-				$rel = trim( $rel . ' noopener noreferrer' );
-			}
-			$out = '<a';
-			if ( $href ) { $out .= ' href="' . esc_url( $href ) . '"'; }
-			if ( $target ) { $out .= ' target="_blank"'; }
-			if ( $rel ) { $out .= ' rel="' . esc_attr( trim( $rel ) ) . '"'; }
-			$out .= '>';
-			return $out;
-		}, $value );
-	}
-
-	private function sanitize_button_html( $value ) {
-		return wp_kses( (string) $value, $this->allowed_html_button() );
 	}
 
 	public function enqueue_assets() {
-		if ( is_admin() ) {
-			return;
-		}
+		if ( is_admin() ) { return; }
 		$options = $this->get_options();
-		if ( empty( $options['banner_enabled'] ) ) {
-			return;
-		}
+		if ( empty( $options['banner_enabled'] ) ) { return; }
 
-		wp_enqueue_style( 'lightweight-consent-mode', plugin_dir_url( __FILE__ ) . 'assets/kk-consent.css', array(), '0.2.0' );
-		wp_enqueue_script( 'lightweight-consent-mode', plugin_dir_url( __FILE__ ) . 'assets/kk-consent.js', array(), '0.2.0', true );
-
-		$font_family = '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
-		if ( 'inherit' === $options['font_preset'] ) {
-			$font_family = 'inherit';
-		} elseif ( 'arial' === $options['font_preset'] ) {
-			$font_family = 'Arial, sans-serif';
-		} elseif ( 'georgia' === $options['font_preset'] ) {
-			$font_family = 'Georgia, serif';
-		} elseif ( 'custom' === $options['font_preset'] && ! empty( $options['font_custom'] ) ) {
-			$font_family = $options['font_custom'];
-		}
+		wp_enqueue_style( 'lightweight-consent-mode', plugin_dir_url( __FILE__ ) . 'assets/kk-consent.css', array(), self::LCM_VERSION );
+		wp_enqueue_script( 'lightweight-consent-mode', plugin_dir_url( __FILE__ ) . 'assets/kk-consent.js', array(), self::LCM_VERSION, true );
 
 		$inline_css = ':root{' .
 			'--lcm-bg:' . esc_attr( $options['design_bg_color'] ) . ';' .
 			'--lcm-text:' . esc_attr( $options['design_text_color'] ) . ';' .
-			'--lcm-primary-bg:' . esc_attr( $options['design_primary_bg'] ) . ';' .
-			'--lcm-primary-text:' . esc_attr( $options['design_primary_text'] ) . ';' .
-			'--lcm-secondary-bg:' . esc_attr( $options['design_secondary_bg'] ) . ';' .
-			'--lcm-secondary-text:' . esc_attr( $options['design_secondary_text'] ) . ';' .
-			'--lcm-border:' . esc_attr( $options['design_border_color'] ) . ';' .
+			'--lcm-header-text:' . esc_attr( $options['design_header_text_color'] ) . ';' .
+			'--lcm-border-color:' . esc_attr( $options['design_border_color'] ) . ';' .
+			'--lcm-border-width:' . absint( $options['design_border_width'] ) . 'px;' .
 			'--lcm-radius:' . absint( $options['design_border_radius'] ) . 'px;' .
 			'--lcm-max-width:' . absint( $options['design_max_width'] ) . 'px;' .
-			'--lcm-font:' . esc_attr( $font_family ) . ';' .
+			'--lcm-banner-padding:' . absint( $options['banner_padding'] ) . 'px;' .
+			'--lcm-header-font:' . esc_attr( $this->font_family_from( $options['header_font_preset'], $options['header_custom_font'] ) ) . ';' .
+			'--lcm-body-font:' . esc_attr( $this->font_family_from( $options['body_font_preset'], $options['body_custom_font'] ) ) . ';' .
+			'--lcm-button-font:' . esc_attr( $this->font_family_from( $options['button_font_preset'], $options['button_custom_font'] ) ) . ';' .
+			'--lcm-header-size:' . absint( $options['header_font_size'] ) . 'px;' .
+			'--lcm-header-weight:' . absint( $options['header_font_weight'] ) . ';' .
+			'--lcm-accept-bg:' . esc_attr( $options['btn_accept_bg'] ) . ';--lcm-accept-text:' . esc_attr( $options['btn_accept_text'] ) . ';--lcm-accept-border:' . esc_attr( $options['btn_accept_border'] ) . ';' .
+			'--lcm-reject-bg:' . esc_attr( $options['btn_reject_bg'] ) . ';--lcm-reject-text:' . esc_attr( $options['btn_reject_text'] ) . ';--lcm-reject-border:' . esc_attr( $options['btn_reject_border'] ) . ';' .
+			'--lcm-settings-bg:' . esc_attr( $options['btn_settings_bg'] ) . ';--lcm-settings-text:' . esc_attr( $options['btn_settings_text'] ) . ';--lcm-settings-border:' . esc_attr( $options['btn_settings_border'] ) . ';' .
+			'--lcm-save-bg:' . esc_attr( $options['btn_save_bg'] ) . ';--lcm-save-text:' . esc_attr( $options['btn_save_text'] ) . ';--lcm-save-border:' . esc_attr( $options['btn_save_border'] ) . ';' .
 		'}';
 		wp_add_inline_style( 'lightweight-consent-mode', $inline_css );
 
-		$lang      = $this->current_lang();
-		$version   = sanitize_key( $options['consent_version'] );
-		$store_key = 'kk_consent_' . $version;
 		$presets   = $this->get_presets();
 		$preset    = isset( $presets[ $options['banner_preset'] ] ) ? $options['banner_preset'] : 'universal';
-
 		$config = array(
 			'debug'                  => ! empty( $options['debug_mode'] ),
-			'storageKey'             => $store_key,
+			'storageKey'             => 'kk_consent_' . sanitize_key( $options['consent_version'] ),
 			'cookieDays'             => max( 1, absint( $options['cookie_days'] ) ),
 			'policyUrl'              => esc_url_raw( $options['policy_url'] ),
 			'logoUrl'                => esc_url_raw( $options['logo_url'] ),
@@ -242,100 +214,51 @@ class Lightweight_Consent_Mode {
 			'languageMode'           => $options['language_mode'],
 			'translations'           => array(
 				'en' => array(
-					'banner_text'      => $this->sanitize_formatted_text( $options['banner_text_en'] ),
-					'accept_all'       => $this->sanitize_button_html( $options['label_accept_all_en'] ),
-					'reject_all'       => $this->sanitize_button_html( $options['label_reject_all_en'] ),
-					'customize'        => $this->sanitize_button_html( $options['label_customize_en'] ),
-					'save_choices'     => $this->sanitize_button_html( $options['label_save_choices_en'] ),
-					'reopen'           => wp_strip_all_tags( $options['label_reopen_en'] ),
-					'more_info'        => $this->sanitize_formatted_text( $options['policy_link_text_en'] ),
-					'necessary'        => 'Necessary cookies',
-					'analytics'        => 'Analytics',
-					'marketing'        => 'Marketing measurement',
-					'personalization'  => 'Personalization',
-					'panel_intro'      => $this->sanitize_formatted_text( $options['panel_intro_en'] ),
-					'analytics_desc'   => $this->sanitize_formatted_text( $options['analytics_desc_en'] ),
-					'marketing_desc'   => $this->sanitize_formatted_text( $options['marketing_desc_en'] ),
-					'personalization_desc' => $this->sanitize_formatted_text( $options['personalization_desc_en'] ),
+					'banner_title' => $this->sanitize_formatted_text( $options['banner_title_en'] ), 'banner_text' => $this->sanitize_formatted_text( $options['banner_text_en'] ), 'panel_intro' => $this->sanitize_formatted_text( $options['panel_intro_en'] ),
+					'accept_all' => $this->sanitize_button_html( $options['label_accept_all_en'] ), 'reject_all' => $this->sanitize_button_html( $options['label_reject_all_en'] ), 'customize' => $this->sanitize_button_html( $options['label_customize_en'] ), 'save_choices' => $this->sanitize_button_html( $options['label_save_choices_en'] ), 'reopen' => wp_strip_all_tags( $options['label_reopen_en'] ),
+					'necessary' => 'Necessary cookies', 'analytics' => 'Analytics', 'marketing' => 'Marketing', 'personalization' => 'Personalization',
+					'analytics_desc' => $this->sanitize_formatted_text( $options['analytics_desc_en'] ), 'marketing_desc' => $this->sanitize_formatted_text( $options['marketing_desc_en'] ), 'personalization_desc' => $this->sanitize_formatted_text( $options['personalization_desc_en'] ),
+					'more_info' => $this->sanitize_formatted_text( $options['policy_link_text_en'] ),
 				),
 				'hu' => array(
-					'banner_text'      => $this->sanitize_formatted_text( $options['banner_text_hu'] ),
-					'accept_all'       => $this->sanitize_button_html( $options['label_accept_all_hu'] ),
-					'reject_all'       => $this->sanitize_button_html( $options['label_reject_all_hu'] ),
-					'customize'        => $this->sanitize_button_html( $options['label_customize_hu'] ),
-					'save_choices'     => $this->sanitize_button_html( $options['label_save_choices_hu'] ),
-					'reopen'           => wp_strip_all_tags( $options['label_reopen_hu'] ),
-					'more_info'        => $this->sanitize_formatted_text( $options['policy_link_text_hu'] ),
-					'necessary'        => '',
-					'analytics'        => '',
-					'marketing'        => '',
-					'personalization'  => '',
-					'panel_intro'      => $this->sanitize_formatted_text( $options['panel_intro_hu'] ),
-					'analytics_desc'   => $this->sanitize_formatted_text( $options['analytics_desc_hu'] ),
-					'marketing_desc'   => $this->sanitize_formatted_text( $options['marketing_desc_hu'] ),
-					'personalization_desc' => $this->sanitize_formatted_text( $options['personalization_desc_hu'] ),
+					'banner_title' => $this->sanitize_formatted_text( $options['banner_title_hu'] ), 'banner_text' => $this->sanitize_formatted_text( $options['banner_text_hu'] ), 'panel_intro' => $this->sanitize_formatted_text( $options['panel_intro_hu'] ),
+					'accept_all' => $this->sanitize_button_html( $options['label_accept_all_hu'] ), 'reject_all' => $this->sanitize_button_html( $options['label_reject_all_hu'] ), 'customize' => $this->sanitize_button_html( $options['label_customize_hu'] ), 'save_choices' => $this->sanitize_button_html( $options['label_save_choices_hu'] ), 'reopen' => wp_strip_all_tags( $options['label_reopen_hu'] ),
+					'necessary' => '', 'analytics' => '', 'marketing' => '', 'personalization' => '', 'analytics_desc' => $this->sanitize_formatted_text( $options['analytics_desc_hu'] ), 'marketing_desc' => $this->sanitize_formatted_text( $options['marketing_desc_hu'] ), 'personalization_desc' => $this->sanitize_formatted_text( $options['personalization_desc_hu'] ), 'more_info' => $this->sanitize_formatted_text( $options['policy_link_text_hu'] ),
 				),
 			),
-			'preset'                 => $preset,
 		);
-
 		wp_add_inline_script( 'lightweight-consent-mode', 'window.kkConsentConfig = ' . wp_json_encode( $config ) . ';', 'before' );
 	}
 
 	public function print_consent_defaults() {
-		if ( is_admin() ) {
-			return;
-		}
+		if ( is_admin() ) { return; }
 		$options = $this->get_options();
-		if ( empty( $options['banner_enabled'] ) ) {
-			return;
-		}
-		$version   = sanitize_key( $options['consent_version'] );
-		$store_key = 'kk_consent_' . $version;
-		$debug     = ! empty( $options['debug_mode'] ) ? 'true' : 'false';
+		if ( empty( $options['banner_enabled'] ) ) { return; }
+		$store_key = 'kk_consent_' . sanitize_key( $options['consent_version'] );
+		$debug = ! empty( $options['debug_mode'] ) ? 'true' : 'false';
 		?>
 		<script id="lcm-consent-default">window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);} (function(){var storageKey=<?php echo wp_json_encode( $store_key ); ?>;var debug=<?php echo esc_js( $debug ); ?>;var saved=null;try{saved=localStorage.getItem(storageKey);}catch(e){} if(!saved){var match=document.cookie.match(new RegExp('(^| )'+storageKey+'=([^;]+)'));if(match&&match[2]){saved=decodeURIComponent(match[2]);}} var parsed=null;if(saved){try{parsed=JSON.parse(saved);}catch(e){}} var analytics=!!(parsed&&parsed.choices&&parsed.choices.analytics);var marketing=!!(parsed&&parsed.choices&&parsed.choices.marketing);var personalization=!!(parsed&&parsed.choices&&parsed.choices.personalization);var payload={analytics_storage:analytics?'granted':'denied',ad_storage:marketing?'granted':'denied',ad_user_data:marketing?'granted':'denied',ad_personalization:marketing?'granted':'denied',functionality_storage:'granted',security_storage:'granted',personalization_storage:personalization?'granted':'denied',wait_for_update:500};gtag('consent','default',payload);var defaultEvent={event:'kk_consent_default',kk_consent_status:parsed?'saved':'unset'};dataLayer.push(defaultEvent);if(debug){console.log('[LCM] default payload',payload);console.log('[LCM] default event',defaultEvent);}})();</script>
 		<?php
 	}
 
-	public function maybe_print_gtm_head() {
-		$options = $this->get_options();
-		if ( is_admin() || empty( $options['gtm_inject'] ) || empty( $options['gtm_container_id'] ) ) {
-			return;
-		}
-		$container_id = preg_replace( '/[^A-Z0-9\-]/', '', strtoupper( $options['gtm_container_id'] ) );
-		?>
-		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<?php echo esc_js( $container_id ); ?>');</script>
-		<?php
-	}
-
-	public function maybe_print_gtm_noscript() {
-		$options = $this->get_options();
-		if ( empty( $options['gtm_inject'] ) || empty( $options['gtm_container_id'] ) ) {
-			return;
-		}
-		$container_id = preg_replace( '/[^A-Z0-9\-]/', '', strtoupper( $options['gtm_container_id'] ) );
-		echo '<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=' . esc_attr( $container_id ) . '" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>';
-	}
+	public function maybe_print_gtm_head() { $o = $this->get_options(); if ( is_admin() || empty( $o['gtm_inject'] ) || empty( $o['gtm_container_id'] ) ) { return; } $id = preg_replace( '/[^A-Z0-9\-]/', '', strtoupper( $o['gtm_container_id'] ) ); ?><script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<?php echo esc_js( $id ); ?>');</script><?php }
+	public function maybe_print_gtm_noscript() { $o = $this->get_options(); if ( empty( $o['gtm_inject'] ) || empty( $o['gtm_container_id'] ) ) { return; } $id = preg_replace( '/[^A-Z0-9\-]/', '', strtoupper( $o['gtm_container_id'] ) ); echo '<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=' . esc_attr( $id ) . '" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>'; }
 
 	public function render_banner_markup() {
-		if ( is_admin() ) {
-			return;
-		}
-		$options = $this->get_options();
-		if ( empty( $options['banner_enabled'] ) ) {
-			return;
-		}
-		$lang    = $this->current_lang();
+		if ( is_admin() ) { return; }
+		$o = $this->get_options();
+		if ( empty( $o['banner_enabled'] ) ) { return; }
 		$presets = $this->get_presets();
-		$preset  = isset( $presets[ $options['banner_preset'] ] ) ? $options['banner_preset'] : 'universal';
+		$preset = isset( $presets[ $o['banner_preset'] ] ) ? $o['banner_preset'] : 'universal';
+		$banner_buttons = $this->ordered_banner_buttons( $presets[ $preset ]['banner_buttons'], $o['banner_order'] );
 		?>
-		<div id="lcm-consent-root" class="lcm-consent-root" data-lang="<?php echo esc_attr( $lang ); ?>" data-desktop-position="<?php echo esc_attr( $options['desktop_position'] ); ?>" data-mobile-layout="<?php echo esc_attr( $options['mobile_layout'] ); ?>" data-desktop-layout="<?php echo esc_attr( $options['desktop_layout'] ); ?>">
+		<div id="lcm-consent-root" class="lcm-consent-root" data-desktop-position="<?php echo esc_attr( $o['desktop_position'] ); ?>" data-mobile-layout="<?php echo esc_attr( $o['mobile_layout'] ); ?>" data-desktop-layout="<?php echo esc_attr( $o['desktop_layout'] ); ?>">
 			<div class="lcm-consent-banner" role="dialog" aria-live="polite" aria-label="Cookie consent" hidden>
 				<img class="lcm-consent-logo" src="" alt="" hidden>
-				<p class="lcm-consent-text"><?php echo wp_kses_post( $options[ 'banner_text_' . $lang ] ); ?></p>
-				<a class="lcm-consent-policy" href="<?php echo esc_url( $options['policy_url'] ); ?>" target="_blank" rel="noopener noreferrer"></a>
-				<div class="lcm-consent-actions"><?php $this->render_buttons( $presets[ $preset ]['banner_buttons'] ); ?></div>
+				<h3 class="lcm-consent-title"></h3>
+				<p class="lcm-consent-text"></p>
+				<a class="lcm-consent-policy" href="<?php echo esc_url( $o['policy_url'] ); ?>" target="_blank" rel="noopener noreferrer"></a>
+				<div class="lcm-consent-actions"><?php $this->render_buttons( $banner_buttons ); ?></div>
 				<div class="lcm-consent-panel" hidden>
 					<p class="lcm-panel-intro"></p>
 					<label><input type="checkbox" checked disabled> <span class="lcm-necessary-label"></span></label>
@@ -350,146 +273,41 @@ class Lightweight_Consent_Mode {
 		<?php
 	}
 
-	public function admin_menu() {
-		add_options_page( esc_html__( 'Lightweight Consent Mode', 'lightweight-consent-mode' ), esc_html__( 'Lightweight Consent Mode', 'lightweight-consent-mode' ), 'manage_options', 'lightweight-consent-mode', array( $this, 'render_admin_page' ) );
-	}
-
-	public function register_settings() {
-		register_setting( 'lcm_settings_group', self::OPTION_KEY, array( $this, 'sanitize_options' ) );
-	}
+	public function admin_menu() { add_options_page( 'Lightweight Consent Mode', 'Lightweight Consent Mode', 'manage_options', 'lightweight-consent-mode', array( $this, 'render_admin_page' ) ); }
+	public function register_settings() { register_setting( 'lcm_settings_group', self::OPTION_KEY, array( $this, 'sanitize_options' ) ); }
 
 	public function sanitize_options( $input ) {
-		$defaults = $this->defaults();
-		$output   = array();
-		foreach ( $defaults as $key => $value ) {
-			$output[ $key ] = isset( $input[ $key ] ) ? $input[ $key ] : $value;
-		}
-		$output['banner_enabled']          = empty( $input['banner_enabled'] ) ? 0 : 1;
-		$output['gtm_inject']              = empty( $input['gtm_inject'] ) ? 0 : 1;
-		$output['debug_mode']              = empty( $input['debug_mode'] ) ? 0 : 1;
-		$output['reopen_icon_only']        = empty( $input['reopen_icon_only'] ) ? 0 : 1;
-		$output['default_analytics']       = empty( $input['default_analytics'] ) ? 0 : 1;
-		$output['default_marketing']       = empty( $input['default_marketing'] ) ? 0 : 1;
-		$output['default_personalization'] = empty( $input['default_personalization'] ) ? 0 : 1;
-		$output['consent_version']         = sanitize_key( $output['consent_version'] );
-		$output['banner_preset']           = in_array( $output['banner_preset'], array( 'universal', 'kk' ), true ) ? $output['banner_preset'] : 'universal';
-		$output['desktop_position']        = in_array( $output['desktop_position'], array( 'center', 'bottom_center', 'bottom_left', 'bottom_right' ), true ) ? $output['desktop_position'] : 'center';
-		$output['desktop_layout']          = in_array( $output['desktop_layout'], array( 'box', 'sheet' ), true ) ? $output['desktop_layout'] : 'box';
-		$output['mobile_layout']           = in_array( $output['mobile_layout'], array( 'sheet', 'box' ), true ) ? $output['mobile_layout'] : 'sheet';
-		$output['font_preset']             = in_array( $output['font_preset'], array( 'inherit', 'system', 'arial', 'georgia', 'custom' ), true ) ? $output['font_preset'] : 'system';
-		$output['language_mode']            = in_array( $output['language_mode'], array( 'browser', 'en', 'hu' ), true ) ? $output['language_mode'] : 'browser';
-		$output['font_custom']             = sanitize_text_field( $output['font_custom'] );
-		$output['banner_text_en']           = $this->sanitize_formatted_text( $output['banner_text_en'] );
-		$output['banner_text_hu']           = $this->sanitize_formatted_text( $output['banner_text_hu'] );
-		$output['panel_intro_en']           = $this->sanitize_formatted_text( $output['panel_intro_en'] );
-		$output['panel_intro_hu']           = $this->sanitize_formatted_text( $output['panel_intro_hu'] );
-		$output['analytics_desc_en']        = $this->sanitize_formatted_text( $output['analytics_desc_en'] );
-		$output['analytics_desc_hu']        = $this->sanitize_formatted_text( $output['analytics_desc_hu'] );
-		$output['marketing_desc_en']        = $this->sanitize_formatted_text( $output['marketing_desc_en'] );
-		$output['marketing_desc_hu']        = $this->sanitize_formatted_text( $output['marketing_desc_hu'] );
-		$output['personalization_desc_en']  = $this->sanitize_formatted_text( $output['personalization_desc_en'] );
-		$output['personalization_desc_hu']  = $this->sanitize_formatted_text( $output['personalization_desc_hu'] );
-		$output['policy_link_text_en']      = $this->sanitize_formatted_text( $output['policy_link_text_en'] );
-		$output['policy_link_text_hu']      = $this->sanitize_formatted_text( $output['policy_link_text_hu'] );
-		$output['label_accept_all_en']      = $this->sanitize_button_html( $output['label_accept_all_en'] );
-		$output['label_accept_all_hu']      = $this->sanitize_button_html( $output['label_accept_all_hu'] );
-		$output['label_reject_all_en']      = $this->sanitize_button_html( $output['label_reject_all_en'] );
-		$output['label_reject_all_hu']      = $this->sanitize_button_html( $output['label_reject_all_hu'] );
-		$output['label_customize_en']       = $this->sanitize_button_html( $output['label_customize_en'] );
-		$output['label_customize_hu']       = $this->sanitize_button_html( $output['label_customize_hu'] );
-		$output['label_save_choices_en']    = $this->sanitize_button_html( $output['label_save_choices_en'] );
-		$output['label_save_choices_hu']    = $this->sanitize_button_html( $output['label_save_choices_hu'] );
-		$output['label_reopen_en']          = sanitize_text_field( wp_strip_all_tags( $output['label_reopen_en'] ) );
-		$output['label_reopen_hu']          = sanitize_text_field( wp_strip_all_tags( $output['label_reopen_hu'] ) );
-		$output['gtm_container_id']        = preg_replace( '/[^A-Z0-9\-]/', '', strtoupper( sanitize_text_field( $output['gtm_container_id'] ) ) );
-		$output['policy_url']              = esc_url_raw( $output['policy_url'] );
-		$output['logo_url']                = esc_url_raw( $output['logo_url'] );
-		$output['cookie_days']             = max( 1, min( 730, absint( $output['cookie_days'] ) ) );
-		$output['design_bg_color']         = sanitize_hex_color( $output['design_bg_color'] ) ?: $defaults['design_bg_color'];
-		$output['design_text_color']       = sanitize_hex_color( $output['design_text_color'] ) ?: $defaults['design_text_color'];
-		$output['design_primary_bg']       = sanitize_hex_color( $output['design_primary_bg'] ) ?: $defaults['design_primary_bg'];
-		$output['design_primary_text']     = sanitize_hex_color( $output['design_primary_text'] ) ?: $defaults['design_primary_text'];
-		$output['design_secondary_bg']     = sanitize_hex_color( $output['design_secondary_bg'] ) ?: $defaults['design_secondary_bg'];
-		$output['design_secondary_text']   = sanitize_hex_color( $output['design_secondary_text'] ) ?: $defaults['design_secondary_text'];
-		$output['design_border_color']     = sanitize_hex_color( $output['design_border_color'] ) ?: $defaults['design_border_color'];
-		$output['design_border_radius']    = max( 0, min( 40, absint( $output['design_border_radius'] ) ) );
-		$output['design_max_width']        = max( 320, min( 1400, absint( $output['design_max_width'] ) ) );
-		return $output;
+		$d = $this->defaults(); $o = array(); foreach ( $d as $k=>$v ) { $o[$k] = isset($input[$k]) ? $input[$k] : $v; }
+		foreach ( array('banner_enabled','gtm_inject','debug_mode','reopen_icon_only','default_analytics','default_marketing','default_personalization') as $k ) { $o[$k] = empty($input[$k]) ? 0 : 1; }
+		$o['language_mode'] = in_array( $o['language_mode'], array('browser','en','hu'), true ) ? $o['language_mode'] : 'browser';
+		$o['banner_preset'] = in_array( $o['banner_preset'], array('universal','kk'), true ) ? $o['banner_preset'] : 'universal';
+		$o['desktop_position'] = in_array( $o['desktop_position'], array('center','bottom_center','bottom_left','bottom_right'), true ) ? $o['desktop_position'] : 'center';
+		$o['desktop_layout'] = in_array( $o['desktop_layout'], array('box','sheet'), true ) ? $o['desktop_layout'] : 'box';
+		$o['mobile_layout'] = in_array( $o['mobile_layout'], array('sheet','box'), true ) ? $o['mobile_layout'] : 'sheet';
+		$o['consent_version'] = sanitize_key( $o['consent_version'] );
+		$o['banner_order'] = sanitize_text_field( $o['banner_order'] );
+		$o['gtm_container_id'] = preg_replace('/[^A-Z0-9\-]/','',strtoupper(sanitize_text_field($o['gtm_container_id'])));
+		$o['policy_url'] = esc_url_raw( $o['policy_url'] ); $o['logo_url'] = esc_url_raw( $o['logo_url'] );
+		$o['cookie_days'] = max(1,min(730,absint($o['cookie_days'])));
+		foreach ( array('design_border_radius'=>array(0,40),'design_max_width'=>array(320,1400),'banner_padding'=>array(0,64),'design_border_width'=>array(0,10),'header_font_size'=>array(10,64),'header_font_weight'=>array(100,900)) as $k=>$rng ) { $o[$k]=max($rng[0],min($rng[1],absint($o[$k]))); }
+		$fontFields=array('header_font_preset','body_font_preset','button_font_preset'); foreach($fontFields as $k){$o[$k]=$this->sanitize_font_preset($o[$k]);}
+		foreach(array('header_custom_font','body_custom_font','button_custom_font') as $k){$o[$k]=sanitize_text_field($o[$k]);}
+		foreach(array('design_bg_color','design_text_color','design_header_text_color','design_border_color','btn_accept_bg','btn_accept_text','btn_accept_border','btn_reject_bg','btn_reject_text','btn_reject_border','btn_settings_bg','btn_settings_text','btn_settings_border','btn_save_bg','btn_save_text','btn_save_border') as $k){$o[$k]=sanitize_hex_color($o[$k])?:$d[$k];}
+		foreach(array('banner_title_en','banner_title_hu','banner_text_en','banner_text_hu','panel_intro_en','panel_intro_hu','analytics_desc_en','analytics_desc_hu','marketing_desc_en','marketing_desc_hu','personalization_desc_en','personalization_desc_hu','policy_link_text_en','policy_link_text_hu') as $k){$o[$k]=$this->sanitize_formatted_text($o[$k]);}
+		foreach(array('label_accept_all_en','label_accept_all_hu','label_reject_all_en','label_reject_all_hu','label_customize_en','label_customize_hu','label_save_choices_en','label_save_choices_hu') as $k){$o[$k]=$this->sanitize_button_html($o[$k]);}
+		foreach(array('label_reopen_en','label_reopen_hu') as $k){$o[$k]=sanitize_text_field(wp_strip_all_tags($o[$k]));}
+		return $o;
 	}
 
 	public function render_admin_page() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-		$options = $this->get_options();
-		?>
-		<div class="wrap"><h1><?php echo esc_html__( 'Lightweight Consent Mode', 'lightweight-consent-mode' ); ?></h1>
-		<form method="post" action="options.php">
-			<?php settings_fields( 'lcm_settings_group' ); ?>
-
-			<h2><?php echo esc_html__( 'General', 'lightweight-consent-mode' ); ?></h2>
-			<table class="form-table"><tr><th>Banner enabled</th><td><label><input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner_enabled]" value="1" <?php checked( $options['banner_enabled'], 1 ); ?>> Yes</label></td></tr>
-			<tr><th>Banner preset</th><td><select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner_preset]"><option value="universal" <?php selected( $options['banner_preset'], 'universal' ); ?>>universal</option><option value="kk" <?php selected( $options['banner_preset'], 'kk' ); ?>>kk</option></select></td></tr>
-			<tr><th>Consent version</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[consent_version]" value="<?php echo esc_attr( $options['consent_version'] ); ?>"></td></tr>
-			<tr><th>Cookie days</th><td><input type="number" min="1" max="730" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[cookie_days]" value="<?php echo esc_attr( $options['cookie_days'] ); ?>"></td></tr>
-			<tr><th>Policy URL</th><td><input type="url" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[policy_url]" value="<?php echo esc_attr( $options['policy_url'] ); ?>"></td></tr>
-			<tr><th>Logo URL</th><td><input type="url" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[logo_url]" value="<?php echo esc_attr( $options['logo_url'] ); ?>"></td></tr>
-			<tr><th>Reopen icon only</th><td><label><input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[reopen_icon_only]" value="1" <?php checked( $options['reopen_icon_only'], 1 ); ?>> Yes</label></td></tr>\n			<tr><th>Frontend language mode</th><td><select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[language_mode]"><option value="browser" <?php selected( $options['language_mode'], 'browser' ); ?>>browser</option><option value="en" <?php selected( $options['language_mode'], 'en' ); ?>>en</option><option value="hu" <?php selected( $options['language_mode'], 'hu' ); ?>>hu</option></select></td></tr></table>
-
-			<h2><?php echo esc_html__( 'Texts', 'lightweight-consent-mode' ); ?></h2>
-			<table class="form-table"><tr><th>Banner text (HU)</th><td><p><small>You can use: <strong>bold</strong>, <em>emphasis</em>, <br>, and links.</small></p><textarea class="large-text" rows="3" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner_text_hu]"><?php echo esc_textarea( $options['banner_text_hu'] ); ?></textarea></td></tr>
-			<tr><th>Panel intro (HU)</th><td><textarea class="large-text" rows="2" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[panel_intro_hu]"><?php echo esc_textarea( $options['panel_intro_hu'] ); ?></textarea></td></tr>
-			<tr><th>Analytics description (HU)</th><td><textarea class="large-text" rows="2" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[analytics_desc_hu]"><?php echo esc_textarea( $options['analytics_desc_hu'] ); ?></textarea></td></tr>
-			<tr><th>Marketing description (HU)</th><td><textarea class="large-text" rows="2" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[marketing_desc_hu]"><?php echo esc_textarea( $options['marketing_desc_hu'] ); ?></textarea></td></tr>
-			<tr><th>Personalization description (HU)</th><td><textarea class="large-text" rows="2" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[personalization_desc_hu]"><?php echo esc_textarea( $options['personalization_desc_hu'] ); ?></textarea></td></tr>
-			<tr><th>Policy link text (HU)</th><td><input type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[policy_link_text_hu]" value="<?php echo esc_attr( $options['policy_link_text_hu'] ); ?>"></td></tr>
-			<tr><th>Banner text (HU)</th><td><textarea class="large-text" rows="3" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner_text_hu]"><?php echo esc_textarea( $options['banner_text_hu'] ); ?></textarea></td></tr>
-			<tr><th>Banner text (EN)</th><td><textarea class="large-text" rows="3" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[banner_text_en]"><?php echo esc_textarea( $options['banner_text_en'] ); ?></textarea></td></tr>
-			<tr><th>Panel intro (EN)</th><td><textarea class="large-text" rows="2" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[panel_intro_en]"><?php echo esc_textarea( $options['panel_intro_en'] ); ?></textarea></td></tr>
-			<tr><th>Analytics description (EN)</th><td><textarea class="large-text" rows="2" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[analytics_desc_en]"><?php echo esc_textarea( $options['analytics_desc_en'] ); ?></textarea></td></tr>
-			<tr><th>Marketing description (EN)</th><td><textarea class="large-text" rows="2" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[marketing_desc_en]"><?php echo esc_textarea( $options['marketing_desc_en'] ); ?></textarea></td></tr>
-			<tr><th>Personalization description (EN)</th><td><textarea class="large-text" rows="2" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[personalization_desc_en]"><?php echo esc_textarea( $options['personalization_desc_en'] ); ?></textarea></td></tr>
-			<tr><th>Policy link text (EN)</th><td><input type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[policy_link_text_en]" value="<?php echo esc_attr( $options['policy_link_text_en'] ); ?>"></td></tr>
-			<tr><th>HU accept_all</th><td><p><small>Button labels allow: <strong>bold</strong>, <b>bold</b>, <em>emphasis</em>.</small></p><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_accept_all_hu]" value="<?php echo esc_attr( $options['label_accept_all_hu'] ); ?>"></td></tr>
-			<tr><th>HU reject_all</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_accept_all_hu]" value="<?php echo esc_attr( $options['label_accept_all_hu'] ); ?>"></td></tr>
-			<tr><th>HU reject_all</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_reject_all_hu]" value="<?php echo esc_attr( $options['label_reject_all_hu'] ); ?>"></td></tr>
-			<tr><th>HU customize</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_customize_hu]" value="<?php echo esc_attr( $options['label_customize_hu'] ); ?>"></td></tr>
-			<tr><th>HU save_choices</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_save_choices_hu]" value="<?php echo esc_attr( $options['label_save_choices_hu'] ); ?>"></td></tr>
-			<tr><th>EN accept_all</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_accept_all_en]" value="<?php echo esc_attr( $options['label_accept_all_en'] ); ?>"></td></tr>
-			<tr><th>EN reject_all</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_reject_all_en]" value="<?php echo esc_attr( $options['label_reject_all_en'] ); ?>"></td></tr>
-			<tr><th>EN customize</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_customize_en]" value="<?php echo esc_attr( $options['label_customize_en'] ); ?>"></td></tr>
-			<tr><th>EN save_choices</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[label_save_choices_en]" value="<?php echo esc_attr( $options['label_save_choices_en'] ); ?>"></td></tr></table>
-
-			<h2><?php echo esc_html__( 'Design', 'lightweight-consent-mode' ); ?></h2>
-			<table class="form-table"><tr><th>Background color</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[design_bg_color]" value="<?php echo esc_attr( $options['design_bg_color'] ); ?>"></td></tr>
-			<tr><th>Text color</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[design_text_color]" value="<?php echo esc_attr( $options['design_text_color'] ); ?>"></td></tr>
-			<tr><th>Primary button background</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[design_primary_bg]" value="<?php echo esc_attr( $options['design_primary_bg'] ); ?>"></td></tr>
-			<tr><th>Primary button text</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[design_primary_text]" value="<?php echo esc_attr( $options['design_primary_text'] ); ?>"></td></tr>
-			<tr><th>Secondary button background</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[design_secondary_bg]" value="<?php echo esc_attr( $options['design_secondary_bg'] ); ?>"></td></tr>
-			<tr><th>Secondary button text</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[design_secondary_text]" value="<?php echo esc_attr( $options['design_secondary_text'] ); ?>"></td></tr>
-			<tr><th>Border color</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[design_border_color]" value="<?php echo esc_attr( $options['design_border_color'] ); ?>"></td></tr>
-			<tr><th>Border radius</th><td><input type="number" min="0" max="40" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[design_border_radius]" value="<?php echo esc_attr( $options['design_border_radius'] ); ?>"></td></tr>
-			<tr><th>Max width</th><td><input type="number" min="320" max="1400" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[design_max_width]" value="<?php echo esc_attr( $options['design_max_width'] ); ?>"></td></tr>
-			<tr><th>Font preset</th><td><select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[font_preset]"><option value="inherit" <?php selected( $options['font_preset'], 'inherit' ); ?>>inherit</option><option value="system" <?php selected( $options['font_preset'], 'system' ); ?>>system</option><option value="arial" <?php selected( $options['font_preset'], 'arial' ); ?>>arial</option><option value="georgia" <?php selected( $options['font_preset'], 'georgia' ); ?>>georgia</option><option value="custom" <?php selected( $options['font_preset'], 'custom' ); ?>>custom</option></select></td></tr>
-			<tr><th>Custom font family</th><td><input type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[font_custom]" value="<?php echo esc_attr( $options['font_custom'] ); ?>"></td></tr></table>
-
-			<h2><?php echo esc_html__( 'Layout', 'lightweight-consent-mode' ); ?></h2>
-			<table class="form-table"><tr><th>Desktop position</th><td><select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[desktop_position]"><option value="center" <?php selected( $options['desktop_position'], 'center' ); ?>>center</option><option value="bottom_center" <?php selected( $options['desktop_position'], 'bottom_center' ); ?>>bottom_center</option><option value="bottom_left" <?php selected( $options['desktop_position'], 'bottom_left' ); ?>>bottom_left</option><option value="bottom_right" <?php selected( $options['desktop_position'], 'bottom_right' ); ?>>bottom_right</option></select></td></tr>
-			<tr><th>Desktop layout</th><td><select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[desktop_layout]"><option value="box" <?php selected( $options['desktop_layout'], 'box' ); ?>>box</option><option value="sheet" <?php selected( $options['desktop_layout'], 'sheet' ); ?>>sheet</option></select></td></tr>
-			<tr><th>Mobile layout</th><td><select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[mobile_layout]"><option value="sheet" <?php selected( $options['mobile_layout'], 'sheet' ); ?>>sheet</option><option value="box" <?php selected( $options['mobile_layout'], 'box' ); ?>>box</option></select></td></tr></table>
-
-			<h2><?php echo esc_html__( 'GTM / Consent Mode', 'lightweight-consent-mode' ); ?></h2>
-			<table class="form-table"><tr><th>GTM Container ID</th><td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[gtm_container_id]" value="<?php echo esc_attr( $options['gtm_container_id'] ); ?>"></td></tr>
-			<tr><th>Inject GTM snippet</th><td><label><input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[gtm_inject]" value="1" <?php checked( $options['gtm_inject'], 1 ); ?>> Yes</label></td></tr>
-			<tr><th>Default analytics checked</th><td><label><input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[default_analytics]" value="1" <?php checked( $options['default_analytics'], 1 ); ?>> Yes</label></td></tr>
-			<tr><th>Default marketing checked</th><td><label><input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[default_marketing]" value="1" <?php checked( $options['default_marketing'], 1 ); ?>> Yes</label></td></tr>
-			<tr><th>Default personalization checked</th><td><label><input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[default_personalization]" value="1" <?php checked( $options['default_personalization'], 1 ); ?>> Yes</label></td></tr>
-			<tr><th>Debug mode</th><td><label><input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[debug_mode]" value="1" <?php checked( $options['debug_mode'], 1 ); ?>> Yes</label></td></tr></table>
-
-			<?php submit_button(); ?>
-		</form>
-		</div>
-		<?php
+		$o = $this->get_options();
+		?><div class="wrap"><h1>Lightweight Consent Mode</h1><p><strong>Version:</strong> <?php echo esc_html( self::LCM_VERSION ); ?></p><form method="post" action="options.php"><?php settings_fields('lcm_settings_group'); ?>
+		<h2>General</h2><table class="form-table"><tr><th>Banner enabled</th><td><input type="checkbox" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_enabled]" value="1" <?php checked($o['banner_enabled'],1); ?>></td></tr><tr><th>Policy URL</th><td><input type="url" class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[policy_url]" value="<?php echo esc_attr($o['policy_url']); ?>"></td></tr><tr><th>Language mode</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[language_mode]"><option value="browser" <?php selected($o['language_mode'],'browser'); ?>>browser</option><option value="en" <?php selected($o['language_mode'],'en'); ?>>en</option><option value="hu" <?php selected($o['language_mode'],'hu'); ?>>hu</option></select></td></tr><tr><th>Banner preset</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_preset]"><option value="universal" <?php selected($o['banner_preset'],'universal'); ?>>universal</option><option value="kk" <?php selected($o['banner_preset'],'kk'); ?>>kk</option></select></td></tr></table>
+		<h2>Texts</h2><p>You can use: <strong>bold</strong>, <em>emphasis</em>, <br>, and links in long text fields. Button labels support <strong>bold</strong>, <b>bold</b>, <em>emphasis</em>.</p><table class="form-table"><tr><th>Banner title (EN)</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_title_en]" value="<?php echo esc_attr($o['banner_title_en']); ?>"></td></tr><tr><th>Banner title (HU)</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_title_hu]" value="<?php echo esc_attr($o['banner_title_hu']); ?>"></td></tr><tr><th>Banner text (EN)</th><td><textarea class="large-text" rows="3" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_text_en]"><?php echo esc_textarea($o['banner_text_en']); ?></textarea></td></tr><tr><th>Banner text (HU)</th><td><textarea class="large-text" rows="3" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_text_hu]"><?php echo esc_textarea($o['banner_text_hu']); ?></textarea></td></tr><tr><th>Policy link text (EN)</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[policy_link_text_en]" value="<?php echo esc_attr($o['policy_link_text_en']); ?>"></td></tr><tr><th>Policy link text (HU)</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[policy_link_text_hu]" value="<?php echo esc_attr($o['policy_link_text_hu']); ?>"></td></tr></table>
+		<h2>Design</h2><table class="form-table"><tr><th>Header text color</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_header_text_color]" value="<?php echo esc_attr($o['design_header_text_color']); ?>"></td></tr><tr><th>Header font preset</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[header_font_preset]"><option value="inherit" <?php selected($o['header_font_preset'],'inherit'); ?>>inherit</option><option value="system" <?php selected($o['header_font_preset'],'system'); ?>>system</option><option value="arial" <?php selected($o['header_font_preset'],'arial'); ?>>arial</option><option value="georgia" <?php selected($o['header_font_preset'],'georgia'); ?>>georgia</option><option value="custom" <?php selected($o['header_font_preset'],'custom'); ?>>custom</option></select></td></tr><tr><th>Header custom font family</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[header_custom_font]" value="<?php echo esc_attr($o['header_custom_font']); ?>"></td></tr><tr><th>Header font size (px)</th><td><input type="number" min="10" max="64" name="<?php echo esc_attr(self::OPTION_KEY); ?>[header_font_size]" value="<?php echo esc_attr($o['header_font_size']); ?>"></td></tr><tr><th>Header font weight</th><td><input type="number" min="100" max="900" step="100" name="<?php echo esc_attr(self::OPTION_KEY); ?>[header_font_weight]" value="<?php echo esc_attr($o['header_font_weight']); ?>"></td></tr><tr><th>Body font preset</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[body_font_preset]"><option value="inherit" <?php selected($o['body_font_preset'],'inherit'); ?>>inherit</option><option value="system" <?php selected($o['body_font_preset'],'system'); ?>>system</option><option value="arial" <?php selected($o['body_font_preset'],'arial'); ?>>arial</option><option value="georgia" <?php selected($o['body_font_preset'],'georgia'); ?>>georgia</option><option value="custom" <?php selected($o['body_font_preset'],'custom'); ?>>custom</option></select></td></tr><tr><th>Body custom font family</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[body_custom_font]" value="<?php echo esc_attr($o['body_custom_font']); ?>"></td></tr><tr><th>Background color</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_bg_color]" value="<?php echo esc_attr($o['design_bg_color']); ?>"></td></tr><tr><th>Text color</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_text_color]" value="<?php echo esc_attr($o['design_text_color']); ?>"></td></tr><tr><th>Border color</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_border_color]" value="<?php echo esc_attr($o['design_border_color']); ?>"></td></tr><tr><th>Border width (px)</th><td><input type="number" min="0" max="10" name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_border_width]" value="<?php echo esc_attr($o['design_border_width']); ?>"></td></tr><tr><th>Border radius (px)</th><td><input type="number" min="0" max="40" name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_border_radius]" value="<?php echo esc_attr($o['design_border_radius']); ?>"></td></tr><tr><th>Banner max width (px)</th><td><input type="number" min="320" max="1400" name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_max_width]" value="<?php echo esc_attr($o['design_max_width']); ?>"></td></tr><tr><th>Banner padding (px)</th><td><input type="number" min="0" max="64" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_padding]" value="<?php echo esc_attr($o['banner_padding']); ?>"></td></tr></table>
+		<h2>Buttons</h2><table class="form-table"><tr><th>Banner button order</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_order]" value="<?php echo esc_attr($o['banner_order']); ?>"><p><small>Allowed actions: accept_all,reject_all,settings</small></p></td></tr><tr><th>Button font preset</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_font_preset]"><option value="inherit" <?php selected($o['button_font_preset'],'inherit'); ?>>inherit</option><option value="system" <?php selected($o['button_font_preset'],'system'); ?>>system</option><option value="arial" <?php selected($o['button_font_preset'],'arial'); ?>>arial</option><option value="georgia" <?php selected($o['button_font_preset'],'georgia'); ?>>georgia</option><option value="custom" <?php selected($o['button_font_preset'],'custom'); ?>>custom</option></select></td></tr><tr><th>Button custom font family</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_custom_font]" value="<?php echo esc_attr($o['button_custom_font']); ?>"></td></tr><?php foreach ( array('accept'=>'accept','reject'=>'reject','settings'=>'settings','save'=>'save') as $k=>$slug ) : ?><tr><th><?php echo esc_html( ucfirst($k) ); ?> button colors</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_<?php echo esc_attr($slug); ?>_bg]" value="<?php echo esc_attr($o['btn_'.$slug.'_bg']); ?>"> <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_<?php echo esc_attr($slug); ?>_text]" value="<?php echo esc_attr($o['btn_'.$slug.'_text']); ?>"> <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_<?php echo esc_attr($slug); ?>_border]" value="<?php echo esc_attr($o['btn_'.$slug.'_border']); ?>"></td></tr><?php endforeach; ?></table>
+		<h2>Layout</h2><table class="form-table"><tr><th>Desktop position</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[desktop_position]"><option value="center" <?php selected($o['desktop_position'],'center'); ?>>center</option><option value="bottom_center" <?php selected($o['desktop_position'],'bottom_center'); ?>>bottom_center</option><option value="bottom_left" <?php selected($o['desktop_position'],'bottom_left'); ?>>bottom_left</option><option value="bottom_right" <?php selected($o['desktop_position'],'bottom_right'); ?>>bottom_right</option></select></td></tr><tr><th>Desktop layout</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[desktop_layout]"><option value="box" <?php selected($o['desktop_layout'],'box'); ?>>box</option><option value="sheet" <?php selected($o['desktop_layout'],'sheet'); ?>>sheet</option></select></td></tr><tr><th>Mobile layout</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[mobile_layout]"><option value="sheet" <?php selected($o['mobile_layout'],'sheet'); ?>>sheet</option><option value="box" <?php selected($o['mobile_layout'],'box'); ?>>box</option></select></td></tr></table>
+		<h2>GTM / Consent Mode</h2><table class="form-table"><tr><th>GTM Container ID</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[gtm_container_id]" value="<?php echo esc_attr($o['gtm_container_id']); ?>"></td></tr><tr><th>Inject GTM snippet</th><td><input type="checkbox" name="<?php echo esc_attr(self::OPTION_KEY); ?>[gtm_inject]" value="1" <?php checked($o['gtm_inject'],1); ?>></td></tr><tr><th>Default analytics checked</th><td><input type="checkbox" name="<?php echo esc_attr(self::OPTION_KEY); ?>[default_analytics]" value="1" <?php checked($o['default_analytics'],1); ?>></td></tr><tr><th>Default marketing checked</th><td><input type="checkbox" name="<?php echo esc_attr(self::OPTION_KEY); ?>[default_marketing]" value="1" <?php checked($o['default_marketing'],1); ?>></td></tr><tr><th>Default personalization checked</th><td><input type="checkbox" name="<?php echo esc_attr(self::OPTION_KEY); ?>[default_personalization]" value="1" <?php checked($o['default_personalization'],1); ?>></td></tr></table><?php submit_button(); ?></form></div><?php
 	}
 }
 
