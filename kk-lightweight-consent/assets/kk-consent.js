@@ -2,30 +2,25 @@
   'use strict';
 
   var config = window.kkConsentConfig || {};
-  var root = document.getElementById('kk-consent-root');
+  var root = document.getElementById('lcm-consent-root');
   if (!root) return;
 
-  var banner = root.querySelector('.kk-consent-banner');
-  var panel = root.querySelector('.kk-consent-panel');
-  var reopenBtn = root.querySelector('.kk-consent-reopen');
-  var chkAnalytics = root.querySelector('.kk-analytics');
-  var chkMarketing = root.querySelector('.kk-marketing');
-  var chkPersonalization = root.querySelector('.kk-personalization');
-  var policyLink = root.querySelector('.kk-consent-policy');
-  var logo = root.querySelector('.kk-consent-logo');
+  var banner = root.querySelector('.lcm-consent-banner');
+  var panel = root.querySelector('.lcm-consent-panel');
+  var reopenBtn = root.querySelector('.lcm-consent-reopen');
+  var chkAnalytics = root.querySelector('.lcm-analytics');
+  var chkMarketing = root.querySelector('.lcm-marketing');
+  var chkPersonalization = root.querySelector('.lcm-personalization');
+  var policyLink = root.querySelector('.lcm-consent-policy');
+  var logo = root.querySelector('.lcm-consent-logo');
 
   var labels = config.labels || {};
-  var defaultLabels = {
-    accept_all: 'Accept all',
-    reject_all: 'Reject all',
-    customize: 'Customize',
-    save_choices: 'Save choices'
-  };
+  var defaultLabels = { accept_all: 'Accept all', reject_all: 'Reject all', customize: 'Customize', save_choices: 'Save choices' };
 
-  root.querySelector('.kk-necessary-label').textContent = labels.necessary || 'Necessary cookies';
-  root.querySelector('.kk-analytics-label').textContent = labels.analytics || 'Analytics';
-  root.querySelector('.kk-marketing-label').textContent = labels.marketing || 'Marketing';
-  root.querySelector('.kk-personalization-label').textContent = labels.personalization || 'Personalization';
+  root.querySelector('.lcm-necessary-label').textContent = labels.necessary || 'Necessary cookies';
+  root.querySelector('.lcm-analytics-label').textContent = labels.analytics || 'Analytics';
+  root.querySelector('.lcm-marketing-label').textContent = labels.marketing || 'Marketing';
+  root.querySelector('.lcm-personalization-label').textContent = labels.personalization || 'Personalization';
 
   root.querySelectorAll('[data-label-key]').forEach(function (button) {
     var key = button.getAttribute('data-label-key');
@@ -33,7 +28,7 @@
   });
 
   reopenBtn.textContent = config.reopenIconOnly ? '⚙' : (labels.reopen || 'Cookie settings');
-  if (!config.reopenIconOnly) reopenBtn.classList.add('kk-consent-reopen-text');
+  if (!config.reopenIconOnly) reopenBtn.classList.add('lcm-consent-reopen-text');
 
   if (config.policyUrl) {
     policyLink.href = config.policyUrl;
@@ -43,10 +38,6 @@
   if (config.logoUrl) {
     logo.src = config.logoUrl;
     logo.hidden = false;
-  }
-
-  function debugLog() {
-    if (config.debug) console.log.apply(console, arguments);
   }
 
   function setCookie(name, value, days) {
@@ -67,11 +58,7 @@
   }
 
   function persist(choices) {
-    var payload = {
-      version: (config.storageKey || '').replace('kk_consent_', ''),
-      choices: choices,
-      created_at: new Date().toISOString()
-    };
+    var payload = { version: (config.storageKey || '').replace('kk_consent_', ''), choices: choices, created_at: new Date().toISOString() };
     var raw = JSON.stringify(payload);
     try { localStorage.setItem(config.storageKey, raw); } catch (e) {}
     setCookie(config.storageKey, raw, config.cookieDays || 180);
@@ -96,18 +83,13 @@
       window.gtag('consent', 'update', updatePayload);
     }
 
-    var eventPayload = {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
       event: 'kk_consent_update',
       kk_consent_analytics: analytics,
       kk_consent_marketing: marketing,
       kk_consent_personalization: personalization
-    };
-
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push(eventPayload);
-
-    debugLog('[KK Consent] update payload', updatePayload);
-    debugLog('[KK Consent] update event', eventPayload);
+    });
   }
 
   function openBanner(showPanel) {
@@ -122,7 +104,7 @@
     panel.hidden = true;
   }
 
-  function setChoiceCheckboxes(choices) {
+  function setChoices(choices) {
     chkAnalytics.checked = !!choices.analytics;
     chkMarketing.checked = !!choices.marketing;
     chkPersonalization.checked = !!choices.personalization;
@@ -130,10 +112,14 @@
 
   var existing = readSaved();
   if (existing && existing.choices) {
-    setChoiceCheckboxes(existing.choices);
+    setChoices(existing.choices);
     closeBanner();
   } else {
-    setChoiceCheckboxes({ analytics: true, marketing: true, personalization: true });
+    setChoices({
+      analytics: !!config.defaultAnalytics,
+      marketing: !!config.defaultMarketing,
+      personalization: !!config.defaultPersonalization
+    });
     openBanner(false);
   }
 
@@ -154,7 +140,7 @@
 
     if (action === 'reject_all') {
       choices = { analytics: false, marketing: false, personalization: false };
-      setChoiceCheckboxes(choices);
+      setChoices(choices);
       persist(choices);
       consentUpdate(choices);
       closeBanner();
