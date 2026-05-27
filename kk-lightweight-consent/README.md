@@ -76,3 +76,16 @@ Backward compatibility is preserved: if `lcm_options` does not exist but `kk_lwc
 - Resolution order: first `hu*`, then `en*`, else fallback to `en`.
 - English is the global fallback when browser language is unsupported.
 - English is also used when a Hungarian translation field is empty.
+
+
+## Limited HTML formatting
+The following fields support limited safe inline HTML:
+- Banner text
+- Settings panel intro text
+- Category descriptions
+- Policy link text
+- Button labels
+
+Allowed tags in long text fields: `<strong>`, `<b>`, `<em>`, `<br>`, `<a href target rel>`.
+Allowed tags in button labels: `<strong>`, `<b>`, `<em>`.
+All values are sanitized server-side with a strict allowlist before frontend rendering.

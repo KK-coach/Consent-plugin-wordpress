@@ -39,17 +39,24 @@
     return key;
   }
 
-  root.querySelector('.lcm-consent-text').textContent = t('banner_text');
+  function tHtml(key) {
+    if (translations[selectedLang] && translations[selectedLang][key]) return translations[selectedLang][key];
+    if (translations.en && translations.en[key]) return translations.en[key];
+    return '';
+  }
+
+  root.querySelector('.lcm-consent-text').innerHTML = tHtml('banner_text');
   root.querySelector('.lcm-necessary-label').textContent = t('necessary');
   root.querySelector('.lcm-analytics-label').textContent = t('analytics');
   root.querySelector('.lcm-marketing-label').textContent = t('marketing');
   root.querySelector('.lcm-personalization-label').textContent = t('personalization');
-  root.querySelector('.lcm-analytics-desc').textContent = t('analytics_desc');
-  root.querySelector('.lcm-marketing-desc').textContent = t('marketing_desc');
-  root.querySelector('.lcm-personalization-desc').textContent = t('personalization_desc');
+  root.querySelector('.lcm-analytics-desc').innerHTML = tHtml('analytics_desc');
+  root.querySelector('.lcm-marketing-desc').innerHTML = tHtml('marketing_desc');
+  root.querySelector('.lcm-personalization-desc').innerHTML = tHtml('personalization_desc');
+  root.querySelector('.lcm-panel-intro').innerHTML = tHtml('panel_intro');
 
   root.querySelectorAll('[data-label-key]').forEach(function (button) {
-    button.textContent = t(button.getAttribute('data-label-key'));
+    button.innerHTML = tHtml(button.getAttribute('data-label-key'));
   });
 
   reopenBtn.textContent = config.reopenIconOnly ? '⚙' : t('reopen');
@@ -58,7 +65,7 @@
 
   if (config.policyUrl) {
     policyLink.href = config.policyUrl;
-    policyLink.textContent = t('more_info');
+    policyLink.innerHTML = tHtml('more_info');
   }
 
   if (config.logoUrl) {
