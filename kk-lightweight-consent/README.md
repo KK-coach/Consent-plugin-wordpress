@@ -1,6 +1,6 @@
 # Lightweight Consent Mode
 
-Version: **0.3.0**
+Version: **0.3.1**
 
 ## Installation
 1. Copy plugin folder to `wp-content/plugins/lightweight-consent-mode/`.
@@ -55,3 +55,15 @@ The plugin adds a **Settings** link on the WordPress Plugins page via `plugin_ac
 - New option key: `lcm_options`
 - Legacy key: `kk_lwc_options`
 - Legacy values are migrated automatically when needed.
+
+
+## Responsive button layout
+- Desktop: banner and panel action rows are centered.
+- Mobile (max-width: 767px): action buttons stack vertically and use full width with centered text.
+
+## GTM setup quick guide
+- Add GTM Container ID (for example GTM-XXXXXXX).
+- Enable GTM injection only if GTM is not installed elsewhere.
+- Verify consent events in GTM Preview (`kk_consent_default`, `kk_consent_update`).
+- Check `window.dataLayer` in browser console and confirm consent state changes.
+- Avoid duplicate GTM containers and publish GTM changes after updates.
