@@ -3,7 +3,7 @@
  * Plugin Name: Lightweight Consent Mode
  * Plugin URI: https://example.com
  * Description: Lightweight consent banner for WordPress with Google Tag Manager and Google Consent Mode v2 support.
- * Version: 0.3.3
+ * Version: 0.3.4
  * Author: Consent Plugin
  * Author URI: https://example.com
  * Text Domain: lightweight-consent-mode
@@ -13,7 +13,7 @@
 defined( 'ABSPATH' ) || exit;
 
 class Lightweight_Consent_Mode {
-	const LCM_VERSION   = '0.3.3';
+	const LCM_VERSION   = '0.3.4';
 	const OPTION_KEY    = 'lcm_options';
 	const LEGACY_OPTION = 'kk_lwc_options';
 
@@ -299,7 +299,11 @@ class Lightweight_Consent_Mode {
 					<div class="lcm-consent-panel-actions"><?php $this->render_buttons( $panel_buttons ); ?></div>
 				</div>
 			</div>
-			<button type="button" class="lcm-consent-reopen" hidden aria-label="Cookie settings">⚙</button>
+			<button type="button" class="lcm-reopen-button lcm-consent-reopen" hidden aria-label="Cookie settings" title="Cookie settings">
+				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path d="M10.5 2.5a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1l.2 1.5a8.8 8.8 0 0 1 2 .8l1.2-.9a1 1 0 0 1 1.4.1l.7.7a1 1 0 0 1 .1 1.4l-.9 1.2c.3.6.6 1.3.8 2l1.5.2a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1l-1.5.2a8.8 8.8 0 0 1-.8 2l.9 1.2a1 1 0 0 1-.1 1.4l-.7.7a1 1 0 0 1-1.4.1l-1.2-.9c-.6.3-1.3.6-2 .8l-.2 1.5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1l-.2-1.5a8.8 8.8 0 0 1-2-.8l-1.2.9a1 1 0 0 1-1.4-.1l-.7-.7a1 1 0 0 1-.1-1.4l.9-1.2a8.8 8.8 0 0 1-.8-2L1.5 12.5a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1l1.5-.2a8.8 8.8 0 0 1 .8-2l-.9-1.2a1 1 0 0 1 .1-1.4l.7-.7a1 1 0 0 1 1.4-.1l1.2.9c.6-.3 1.3-.6 2-.8zm1.5 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
+				</svg>
+			</button>
 		</div>
 		<?php
 	}

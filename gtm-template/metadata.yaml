@@ -1,0 +1,5 @@
+homepage: https://kk.coach
+documentation: ./README.md
+versions:
+  - sha: initial
+    changeNotes: Initial GTM custom tag template for Consent Mode v2 integration.

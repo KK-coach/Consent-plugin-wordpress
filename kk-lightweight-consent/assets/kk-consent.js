@@ -60,9 +60,12 @@
     button.innerHTML = tHtml(button.getAttribute('data-label-key'));
   });
 
-  reopenBtn.textContent = config.reopenIconOnly ? '⚙' : t('reopen');
   reopenBtn.setAttribute('aria-label', t('reopen'));
-  if (!config.reopenIconOnly) reopenBtn.classList.add('lcm-consent-reopen-text');
+  reopenBtn.setAttribute('title', t('reopen'));
+  if (!config.reopenIconOnly) {
+    reopenBtn.classList.add('lcm-consent-reopen-text');
+    reopenBtn.textContent = t('reopen');
+  }
 
   if (config.policyUrl) {
     policyLink.href = config.policyUrl;

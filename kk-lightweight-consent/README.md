@@ -1,6 +1,6 @@
 # Lightweight Consent Mode
 
-Version: **0.3.3**
+Version: **0.3.4**
 
 ## Installation
 1. Copy plugin folder to `wp-content/plugins/lightweight-consent-mode/`.
@@ -81,3 +81,6 @@ The plugin adds a **Settings** link on the WordPress Plugins page via `plugin_ac
 - Button radius is configurable.
 - Button hover colors are configurable per action.
 - Settings panel shows Save choices by default.
+
+- The reopen button is icon-only by default with accessible label support.
+- Reopen button styling is independent from main action button colors.
