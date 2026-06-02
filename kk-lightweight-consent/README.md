@@ -1,6 +1,6 @@
 # Lightweight Consent Mode
 
-Version: **0.3.6**
+Version: **0.3.7**
 
 ## Installation
 1. Copy plugin folder to `wp-content/plugins/lightweight-consent-mode/`.
@@ -84,5 +84,5 @@ The plugin adds a **Settings** link on the WordPress Plugins page via `plugin_ac
 - Check `window.dataLayer` in browser console for consent events and state changes.
 
 ## Reopen button
-- The reopen button is icon-only by default with accessible label support.
+- The reopen button is icon-only by default and keeps its label only as aria-label/title accessibility text.
 - Reopen button styling is independent from main action button colors.

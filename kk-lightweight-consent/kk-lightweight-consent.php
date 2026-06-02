@@ -3,7 +3,7 @@
  * Plugin Name: Lightweight Consent Mode
  * Plugin URI: https://example.com
  * Description: Lightweight consent banner for WordPress with Google Tag Manager and Google Consent Mode v2 support.
- * Version: 0.3.6
+ * Version: 0.3.7
  * Author: Consent Plugin
  * Author URI: https://example.com
  * Text Domain: lightweight-consent-mode
@@ -13,7 +13,7 @@
 defined( 'ABSPATH' ) || exit;
 
 class Lightweight_Consent_Mode {
-	const LCM_VERSION   = '0.3.6';
+	const LCM_VERSION   = '0.3.7';
 	const OPTION_KEY    = 'lcm_options';
 	const LEGACY_OPTION = 'kk_lwc_options';
 
@@ -283,7 +283,7 @@ class Lightweight_Consent_Mode {
 			'cookieDays'             => max( 1, absint( $options['cookie_days'] ) ),
 			'policyUrl'              => esc_url_raw( $options['policy_url'] ),
 			'logoUrl'                => esc_url_raw( $options['logo_url'] ),
-			'reopenIconOnly'         => ! empty( $options['reopen_icon_only'] ),
+			'reopenIconOnly'         => true,
 			'defaultAnalytics'       => ! empty( $options['default_analytics'] ),
 			'defaultMarketing'       => ! empty( $options['default_marketing'] ),
 			'defaultPersonalization' => ! empty( $options['default_personalization'] ),
@@ -291,14 +291,14 @@ class Lightweight_Consent_Mode {
 			'translations'           => array(
 				'en' => array(
 					'banner_title' => $this->sanitize_formatted_text( $options['banner_title_en'] ), 'banner_text' => $this->sanitize_formatted_text( $options['banner_text_en'] ), 'panel_intro' => $this->sanitize_formatted_text( $options['panel_intro_en'] ),
-					'accept_all' => $this->sanitize_button_html( $options['label_accept_all_en'] ), 'reject_all' => $this->sanitize_button_html( $options['label_reject_all_en'] ), 'customize' => $this->sanitize_button_html( $options['label_customize_en'] ), 'save_choices' => $this->sanitize_button_html( $options['label_save_choices_en'] ), 'reopen_html' => $this->sanitize_button_html( $options['label_reopen_en'] ), 'reopen' => sanitize_text_field( wp_strip_all_tags( $options['label_reopen_en'] ) ), 'dialog_label' => sanitize_text_field( wp_strip_all_tags( $options['dialog_label_en'] ) ),
+					'accept_all' => $this->sanitize_button_html( $options['label_accept_all_en'] ), 'reject_all' => $this->sanitize_button_html( $options['label_reject_all_en'] ), 'customize' => $this->sanitize_button_html( $options['label_customize_en'] ), 'save_choices' => $this->sanitize_button_html( $options['label_save_choices_en'] ), 'reopen' => sanitize_text_field( wp_strip_all_tags( $options['label_reopen_en'] ) ), 'dialog_label' => sanitize_text_field( wp_strip_all_tags( $options['dialog_label_en'] ) ),
 					'necessary' => sanitize_text_field( wp_strip_all_tags( $options['necessary_label_en'] ) ), 'analytics' => sanitize_text_field( wp_strip_all_tags( $options['analytics_label_en'] ) ), 'marketing' => sanitize_text_field( wp_strip_all_tags( $options['marketing_label_en'] ) ), 'personalization' => sanitize_text_field( wp_strip_all_tags( $options['personalization_label_en'] ) ),
 					'necessary_desc' => $this->sanitize_formatted_text( $options['necessary_desc_en'] ), 'analytics_desc' => $this->sanitize_formatted_text( $options['analytics_desc_en'] ), 'marketing_desc' => $this->sanitize_formatted_text( $options['marketing_desc_en'] ), 'personalization_desc' => $this->sanitize_formatted_text( $options['personalization_desc_en'] ),
 					'more_info' => $this->sanitize_formatted_text( $options['policy_link_text_en'] ),
 				),
 				'hu' => array(
 					'banner_title' => $this->sanitize_formatted_text( $options['banner_title_hu'] ), 'banner_text' => $this->sanitize_formatted_text( $options['banner_text_hu'] ), 'panel_intro' => $this->sanitize_formatted_text( $options['panel_intro_hu'] ),
-					'accept_all' => $this->sanitize_button_html( $options['label_accept_all_hu'] ), 'reject_all' => $this->sanitize_button_html( $options['label_reject_all_hu'] ), 'customize' => $this->sanitize_button_html( $options['label_customize_hu'] ), 'save_choices' => $this->sanitize_button_html( $options['label_save_choices_hu'] ), 'reopen_html' => $this->sanitize_button_html( $options['label_reopen_hu'] ), 'reopen' => sanitize_text_field( wp_strip_all_tags( $options['label_reopen_hu'] ) ), 'dialog_label' => sanitize_text_field( wp_strip_all_tags( $options['dialog_label_hu'] ) ),
+					'accept_all' => $this->sanitize_button_html( $options['label_accept_all_hu'] ), 'reject_all' => $this->sanitize_button_html( $options['label_reject_all_hu'] ), 'customize' => $this->sanitize_button_html( $options['label_customize_hu'] ), 'save_choices' => $this->sanitize_button_html( $options['label_save_choices_hu'] ), 'reopen' => sanitize_text_field( wp_strip_all_tags( $options['label_reopen_hu'] ) ), 'dialog_label' => sanitize_text_field( wp_strip_all_tags( $options['dialog_label_hu'] ) ),
 					'necessary' => sanitize_text_field( wp_strip_all_tags( $options['necessary_label_hu'] ) ), 'analytics' => sanitize_text_field( wp_strip_all_tags( $options['analytics_label_hu'] ) ), 'marketing' => sanitize_text_field( wp_strip_all_tags( $options['marketing_label_hu'] ) ), 'personalization' => sanitize_text_field( wp_strip_all_tags( $options['personalization_label_hu'] ) ),
 					'necessary_desc' => $this->sanitize_formatted_text( $options['necessary_desc_hu'] ), 'analytics_desc' => $this->sanitize_formatted_text( $options['analytics_desc_hu'] ), 'marketing_desc' => $this->sanitize_formatted_text( $options['marketing_desc_hu'] ), 'personalization_desc' => $this->sanitize_formatted_text( $options['personalization_desc_hu'] ), 'more_info' => $this->sanitize_formatted_text( $options['policy_link_text_hu'] ),
 				),
@@ -360,7 +360,8 @@ class Lightweight_Consent_Mode {
 
 	public function sanitize_options( $input ) {
 		$d = $this->defaults(); $o = array(); foreach ( $d as $k=>$v ) { $o[$k] = isset($input[$k]) ? $input[$k] : $v; }
-		foreach ( array('banner_enabled','gtm_inject','debug_mode','reopen_icon_only','default_analytics','default_marketing','default_personalization') as $k ) { $o[$k] = empty($input[$k]) ? 0 : 1; }
+		foreach ( array('banner_enabled','gtm_inject','debug_mode','default_analytics','default_marketing','default_personalization') as $k ) { $o[$k] = empty($input[$k]) ? 0 : 1; }
+		$o['reopen_icon_only'] = 1;
 		$o['language_mode'] = in_array( $o['language_mode'], array('browser','en','hu'), true ) ? $o['language_mode'] : 'browser';
 		$o['banner_preset'] = in_array( $o['banner_preset'], array('universal','kk'), true ) ? $o['banner_preset'] : 'universal';
 		$o['desktop_position'] = in_array( $o['desktop_position'], array('center','bottom_center','bottom_left','bottom_right'), true ) ? $o['desktop_position'] : 'center';
@@ -378,8 +379,8 @@ class Lightweight_Consent_Mode {
 		foreach(array('design_bg_color','design_text_color','design_header_text_color','design_border_color','btn_accept_bg','btn_accept_text','btn_accept_border','btn_reject_bg','btn_reject_text','btn_reject_border','btn_settings_bg','btn_settings_text','btn_settings_border','btn_save_bg','btn_save_text','btn_save_border') as $k){$o[$k]=sanitize_hex_color($o[$k])?:$d[$k];}
 		foreach(array('btn_accept_hover_bg','btn_accept_hover_text','btn_accept_hover_border','btn_reject_hover_bg','btn_reject_hover_text','btn_reject_hover_border','btn_settings_hover_bg','btn_settings_hover_text','btn_settings_hover_border','btn_save_hover_bg','btn_save_hover_text','btn_save_hover_border') as $k){$v=sanitize_hex_color($o[$k]);$o[$k]=$v?:'';}
 		foreach(array('banner_title_en','banner_title_hu','banner_text_en','banner_text_hu','panel_intro_en','panel_intro_hu','necessary_desc_en','necessary_desc_hu','analytics_desc_en','analytics_desc_hu','marketing_desc_en','marketing_desc_hu','personalization_desc_en','personalization_desc_hu','policy_link_text_en','policy_link_text_hu') as $k){$o[$k]=$this->sanitize_formatted_text($o[$k]);}
-		foreach(array('label_accept_all_en','label_accept_all_hu','label_reject_all_en','label_reject_all_hu','label_customize_en','label_customize_hu','label_save_choices_en','label_save_choices_hu','label_reopen_en','label_reopen_hu') as $k){$o[$k]=$this->sanitize_button_html($o[$k]);}
-		foreach(array('necessary_label_en','necessary_label_hu','analytics_label_en','analytics_label_hu','marketing_label_en','marketing_label_hu','personalization_label_en','personalization_label_hu','dialog_label_en','dialog_label_hu') as $k){$o[$k]=sanitize_text_field(wp_strip_all_tags($o[$k]));}
+		foreach(array('label_accept_all_en','label_accept_all_hu','label_reject_all_en','label_reject_all_hu','label_customize_en','label_customize_hu','label_save_choices_en','label_save_choices_hu') as $k){$o[$k]=$this->sanitize_button_html($o[$k]);}
+		foreach(array('label_reopen_en','label_reopen_hu','necessary_label_en','necessary_label_hu','analytics_label_en','analytics_label_hu','marketing_label_en','marketing_label_hu','personalization_label_en','personalization_label_hu','dialog_label_en','dialog_label_hu') as $k){$o[$k]=sanitize_text_field(wp_strip_all_tags($o[$k]));}
 		return $o;
 	}
 
@@ -440,8 +441,6 @@ class Lightweight_Consent_Mode {
             $this->admin_text_input( 'Customize label (HU)', 'label_customize_hu', $o['label_customize_hu'], $button_html_note );
             $this->admin_text_input( 'Save choices label (EN)', 'label_save_choices_en', $o['label_save_choices_en'], $button_html_note );
             $this->admin_text_input( 'Save choices label (HU)', 'label_save_choices_hu', $o['label_save_choices_hu'], $button_html_note );
-            $this->admin_text_input( 'Reopen / Cookie settings label (EN)', 'label_reopen_en', $o['label_reopen_en'], $button_html_note );
-            $this->admin_text_input( 'Reopen / Cookie settings label (HU)', 'label_reopen_hu', $o['label_reopen_hu'], $button_html_note );
             ?>
         </table>
         <h3>Customize panel texts</h3>
@@ -470,6 +469,8 @@ class Lightweight_Consent_Mode {
         <h3>Accessibility labels</h3>
         <table class="form-table">
             <?php
+            $this->admin_text_input( 'Reopen / Cookie settings label (EN)', 'label_reopen_en', $o['label_reopen_en'], 'Plain text only. Used for aria-label and title on the icon-only reopen button.' );
+            $this->admin_text_input( 'Reopen / Cookie settings label (HU)', 'label_reopen_hu', $o['label_reopen_hu'], 'Plain text only. Used for aria-label and title on the icon-only reopen button.' );
             $this->admin_text_input( 'Dialog aria-label (EN)', 'dialog_label_en', $o['dialog_label_en'], 'Plain text only.' );
             $this->admin_text_input( 'Dialog aria-label (HU)', 'dialog_label_hu', $o['dialog_label_hu'], 'Plain text only.' );
             ?>

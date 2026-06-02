@@ -64,11 +64,6 @@
 
   reopenBtn.setAttribute('aria-label', t('reopen'));
   reopenBtn.setAttribute('title', t('reopen'));
-  if (!config.reopenIconOnly) {
-    reopenBtn.classList.add('lcm-consent-reopen-text');
-    reopenBtn.innerHTML = tHtml('reopen_html');
-  }
-
   if (config.policyUrl) {
     policyLink.href = config.policyUrl;
     policyLink.innerHTML = tHtml('more_info');
