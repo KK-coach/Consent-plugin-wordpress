@@ -3,7 +3,7 @@
  * Plugin Name: Lightweight Consent Mode
  * Plugin URI: https://example.com
  * Description: Lightweight consent banner for WordPress with Google Tag Manager and Google Consent Mode v2 support.
- * Version: 0.3.4
+ * Version: 0.3.5
  * Author: Consent Plugin
  * Author URI: https://example.com
  * Text Domain: lightweight-consent-mode
@@ -13,7 +13,7 @@
 defined( 'ABSPATH' ) || exit;
 
 class Lightweight_Consent_Mode {
-	const LCM_VERSION   = '0.3.4';
+	const LCM_VERSION   = '0.3.5';
 	const OPTION_KEY    = 'lcm_options';
 	const LEGACY_OPTION = 'kk_lwc_options';
 
@@ -60,9 +60,9 @@ class Lightweight_Consent_Mode {
 			'policy_url'                => home_url( '/' ),
 			'logo_url'                  => '',
 			'reopen_icon_only'          => 1,
-			'default_analytics'         => 1,
-			'default_marketing'         => 1,
-			'default_personalization'   => 1,
+			'default_analytics'         => 0,
+			'default_marketing'         => 0,
+			'default_personalization'   => 0,
 			'desktop_position'          => 'center',
 			'desktop_layout'            => 'box',
 			'mobile_layout'             => 'sheet',
@@ -126,11 +126,29 @@ class Lightweight_Consent_Mode {
 	private function sanitize_formatted_text( $v ) { return wp_kses( (string) $v, $this->allowed_html_text() ); }
 	private function sanitize_button_html( $v ) { return wp_kses( (string) $v, $this->allowed_html_button() ); }
 	private function sanitize_font_preset( $v ) { return in_array( $v, array( 'inherit','system','arial','georgia','custom' ), true ) ? $v : 'inherit'; }
+
+	private function sanitize_font_family( $value ) {
+		$value = trim( (string) $value );
+		if ( '' === $value || ! preg_match( '/^[A-Za-z0-9 ,_\-"\']+$/', $value ) ) {
+			return '';
+		}
+		return $value;
+	}
+
 	private function font_family_from( $preset, $custom ) {
-		if ( 'system' === $preset ) { return '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif'; }
-		if ( 'arial' === $preset ) { return 'Arial, sans-serif'; }
-		if ( 'georgia' === $preset ) { return 'Georgia, serif'; }
-		if ( 'custom' === $preset ) { return $custom; }
+		$stacks = array(
+			'inherit' => 'inherit',
+			'system'  => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+			'arial'   => 'Arial, Helvetica, sans-serif',
+			'georgia' => 'Georgia, serif',
+		);
+		if ( isset( $stacks[ $preset ] ) ) {
+			return $stacks[ $preset ];
+		}
+		if ( 'custom' === $preset ) {
+			$custom = $this->sanitize_font_family( $custom );
+			return '' === $custom ? 'inherit' : $custom;
+		}
 		return 'inherit';
 	}
 
@@ -213,9 +231,9 @@ class Lightweight_Consent_Mode {
 			'--lcm-button-padding-y:' . absint( $options['button_padding_y'] ) . 'px;' .
 			'--lcm-button-padding-x:' . absint( $options['button_padding_x'] ) . 'px;' .
 			'--lcm-button-radius:' . absint( $options['button_radius'] ) . 'px;' .
-			'--lcm-header-font:' . esc_attr( $this->font_family_from( $options['header_font_preset'], $options['header_custom_font'] ) ) . ';' .
-			'--lcm-body-font:' . esc_attr( $this->font_family_from( $options['body_font_preset'], $options['body_custom_font'] ) ) . ';' .
-			'--lcm-button-font:' . esc_attr( $this->font_family_from( $options['button_font_preset'], $options['button_custom_font'] ) ) . ';' .
+			'--lcm-header-font:' . $this->font_family_from( $options['header_font_preset'], $options['header_custom_font'] ) . ';' .
+			'--lcm-body-font:' . $this->font_family_from( $options['body_font_preset'], $options['body_custom_font'] ) . ';' .
+			'--lcm-button-font:' . $this->font_family_from( $options['button_font_preset'], $options['button_custom_font'] ) . ';' .
 			'--lcm-header-size:' . absint( $options['header_font_size'] ) . 'px;' .
 			'--lcm-header-weight:' . absint( $options['header_font_weight'] ) . ';' .
 			'--lcm-accept-bg:' . esc_attr( $options['btn_accept_bg'] ) . ';--lcm-accept-text:' . esc_attr( $options['btn_accept_text'] ) . ';--lcm-accept-border:' . esc_attr( $options['btn_accept_border'] ) . ';' .
@@ -267,7 +285,7 @@ class Lightweight_Consent_Mode {
 		$store_key = 'kk_consent_' . sanitize_key( $options['consent_version'] );
 		$debug = ! empty( $options['debug_mode'] ) ? 'true' : 'false';
 		?>
-		<script id="lcm-consent-default">window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);} (function(){var storageKey=<?php echo wp_json_encode( $store_key ); ?>;var debug=<?php echo esc_js( $debug ); ?>;var saved=null;try{saved=localStorage.getItem(storageKey);}catch(e){} if(!saved){var match=document.cookie.match(new RegExp('(^| )'+storageKey+'=([^;]+)'));if(match&&match[2]){saved=decodeURIComponent(match[2]);}} var parsed=null;if(saved){try{parsed=JSON.parse(saved);}catch(e){}} var analytics=!!(parsed&&parsed.choices&&parsed.choices.analytics);var marketing=!!(parsed&&parsed.choices&&parsed.choices.marketing);var personalization=!!(parsed&&parsed.choices&&parsed.choices.personalization);var payload={analytics_storage:analytics?'granted':'denied',ad_storage:marketing?'granted':'denied',ad_user_data:marketing?'granted':'denied',ad_personalization:marketing?'granted':'denied',functionality_storage:'granted',security_storage:'granted',personalization_storage:personalization?'granted':'denied',wait_for_update:500};gtag('consent','default',payload);var defaultEvent={event:'kk_consent_default',kk_consent_status:parsed?'saved':'unset'};dataLayer.push(defaultEvent);if(debug){console.log('[LCM] default payload',payload);console.log('[LCM] default event',defaultEvent);}})();</script>
+		<script id="lcm-consent-default">window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);} (function(){var storageKey=<?php echo wp_json_encode( $store_key ); ?>;var debug=<?php echo esc_js( $debug ); ?>;var saved=null;try{saved=localStorage.getItem(storageKey);}catch(e){} if(!saved){var match=document.cookie.match(new RegExp('(^| )'+storageKey+'=([^;]+)'));if(match&&match[2]){saved=decodeURIComponent(match[2]);}} var parsed=null;if(saved){try{parsed=JSON.parse(saved);}catch(e){}} var analytics=!!(parsed&&parsed.choices&&parsed.choices.analytics);var marketing=!!(parsed&&parsed.choices&&parsed.choices.marketing);var personalization=!!(parsed&&parsed.choices&&parsed.choices.personalization);var analyticsState=analytics?'granted':'denied';var marketingState=marketing?'granted':'denied';var personalizationState=personalization?'granted':'denied';var payload={analytics_storage:analyticsState,ad_storage:marketingState,ad_user_data:marketingState,ad_personalization:marketingState,functionality_storage:'granted',security_storage:'granted',personalization_storage:personalizationState,wait_for_update:500};gtag('consent','default',payload);var defaultEvent={event:'kk_consent_default',kk_consent_status:parsed?'saved':'unset',kk_consent_analytics:analyticsState,kk_consent_marketing:marketingState,kk_consent_personalization:personalizationState};dataLayer.push(defaultEvent);if(parsed){dataLayer.push({event:'kk_consent_ready',kk_consent_status:'saved',kk_consent_analytics:analyticsState,kk_consent_marketing:marketingState,kk_consent_personalization:personalizationState});window.lcmConsentReadyPushed=true;}if(debug){console.log('[LCM] default payload',payload);console.log('[LCM] default event',defaultEvent);}})();</script>
 		<?php
 	}
 
@@ -327,7 +345,7 @@ class Lightweight_Consent_Mode {
 		$o['cookie_days'] = max(1,min(730,absint($o['cookie_days'])));
 		foreach ( array('design_border_radius'=>array(0,40),'design_max_width'=>array(320,1400),'banner_padding'=>array(0,64),'button_padding_y'=>array(0,32),'button_padding_x'=>array(0,64),'button_radius'=>array(0,40),'design_border_width'=>array(0,10),'header_font_size'=>array(10,64),'header_font_weight'=>array(100,900)) as $k=>$rng ) { $o[$k]=max($rng[0],min($rng[1],absint($o[$k]))); }
 		$fontFields=array('header_font_preset','body_font_preset','button_font_preset'); foreach($fontFields as $k){$o[$k]=$this->sanitize_font_preset($o[$k]);}
-		foreach(array('header_custom_font','body_custom_font','button_custom_font') as $k){$o[$k]=sanitize_text_field($o[$k]);}
+		foreach(array('header_custom_font','body_custom_font','button_custom_font') as $k){$o[$k]=$this->sanitize_font_family($o[$k]);}
 		foreach(array('design_bg_color','design_text_color','design_header_text_color','design_border_color','btn_accept_bg','btn_accept_text','btn_accept_border','btn_reject_bg','btn_reject_text','btn_reject_border','btn_settings_bg','btn_settings_text','btn_settings_border','btn_save_bg','btn_save_text','btn_save_border') as $k){$o[$k]=sanitize_hex_color($o[$k])?:$d[$k];}
 		foreach(array('btn_accept_hover_bg','btn_accept_hover_text','btn_accept_hover_border','btn_reject_hover_bg','btn_reject_hover_text','btn_reject_hover_border','btn_settings_hover_bg','btn_settings_hover_text','btn_settings_hover_border','btn_save_hover_bg','btn_save_hover_text','btn_save_hover_border') as $k){$v=sanitize_hex_color($o[$k]);$o[$k]=$v?:'';}
 		foreach(array('banner_title_en','banner_title_hu','banner_text_en','banner_text_hu','panel_intro_en','panel_intro_hu','analytics_desc_en','analytics_desc_hu','marketing_desc_en','marketing_desc_hu','personalization_desc_en','personalization_desc_hu','policy_link_text_en','policy_link_text_hu') as $k){$o[$k]=$this->sanitize_formatted_text($o[$k]);}
@@ -343,7 +361,7 @@ class Lightweight_Consent_Mode {
 			<summary><strong>Google Tag Manager setup guide</strong></summary>
 			<h3>A. What this plugin does</h3>
 			<p>This plugin sends Google Consent Mode v2 signals from the WordPress frontend.</p>
-			<ul><li>It sends a default consent state before the visitor makes a choice.</li><li>It sends an updated consent state after the visitor accepts, rejects, or saves custom choices.</li><li>It pushes dataLayer events: <code>kk_consent_default</code> and <code>kk_consent_update</code>.</li><li>The plugin can optionally inject the GTM container snippet.</li></ul>
+			<ul><li>It sends a default consent state before the visitor makes a choice.</li><li>It sends an updated consent state after the visitor accepts, rejects, or saves custom choices.</li><li>It pushes dataLayer events: <code>kk_consent_default</code>, <code>kk_consent_update</code>, and <code>kk_consent_ready</code>.</li><li>The plugin can optionally inject the GTM container snippet.</li></ul>
 			<h3>B. Plugin-side setup</h3>
 			<ol><li>Enter the GTM Container ID (for example <code>GTM-XXXXXXX</code>).</li><li>Enable GTM injection only if the same GTM container is not already installed by theme/plugin/custom code.</li><li>If GTM is already installed elsewhere, keep GTM injection disabled to avoid duplicate containers.</li><li>Save plugin settings.</li><li>Clear page cache if caching is active.</li><li>Test in an incognito browser session.</li></ol>
 			<h3>C. Important loading order note</h3>
@@ -360,7 +378,7 @@ class Lightweight_Consent_Mode {
 			<ol><li>Open GTM Preview.</li><li>Open website in incognito.</li><li>Before banner interaction, verify <code>kk_consent_default</code> exists and consent state is as expected.</li><li>Click Accept all and verify <code>kk_consent_update</code> with granted analytics/marketing-related states.</li><li>Clear consent storage and retest Reject all.</li><li>Clear storage again and test Customize/Save choices (for example analytics granted, marketing denied).</li></ol>
 			<h3>H. Browser console testing</h3>
 			<p>Run this in DevTools Console:</p><pre>window.dataLayer</pre>
-			<p>Check for <code>kk_consent_default</code>, <code>kk_consent_update</code>, and consent fields such as <code>analytics_storage</code>, <code>ad_storage</code>, <code>ad_user_data</code>, <code>ad_personalization</code>.</p>
+			<p>Check for <code>kk_consent_default</code>, <code>kk_consent_update</code>, <code>kk_consent_ready</code>, and consent fields such as <code>analytics_storage</code>, <code>ad_storage</code>, <code>ad_user_data</code>, <code>ad_personalization</code>.</p>
 			<h3>I. Common mistakes</h3>
 			<ul><li>Installing the same GTM container twice.</li><li>Using Consent Initialization triggers for normal GA4 or Ads tags.</li><li>Forgetting to enable Consent Overview.</li><li>Forgetting to publish GTM after changes.</li><li>Testing only banner visuals and not consent state.</li><li>Using <code>kk_consent_update</code> for every tag and then expecting immediate pageview firing.</li><li>Leaving cache active while testing.</li><li>Running multiple consent plugins at the same time.</li></ul>
 			<h3>J. Optional debug mode</h3>

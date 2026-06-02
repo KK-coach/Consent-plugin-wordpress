@@ -1,5 +1,7 @@
-# Consent-plugin-wordpress
+# Consent Plugin WordPress
 
-Project contains a production-ready WordPress plugin directory:
+This repository contains the WordPress plugin source and related GTM template files.
 
-- `kk-lightweight-consent/`
+For plugin installation, configuration, Consent Mode, and GTM setup details, see:
+
+- `kk-lightweight-consent/README.md`

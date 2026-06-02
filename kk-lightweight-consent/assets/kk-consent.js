@@ -101,10 +101,32 @@
     setCookie(config.storageKey, raw, config.cookieDays || 180);
   }
 
-  function consentUpdate(choices) {
-    var analytics = choices.analytics ? 'granted' : 'denied';
-    var marketing = choices.marketing ? 'granted' : 'denied';
-    var personalization = choices.personalization ? 'granted' : 'denied';
+  function consentState(choices) {
+    return {
+      kk_consent_analytics: choices.analytics ? 'granted' : 'denied',
+      kk_consent_marketing: choices.marketing ? 'granted' : 'denied',
+      kk_consent_personalization: choices.personalization ? 'granted' : 'denied'
+    };
+  }
+
+  function pushReady(choices, status) {
+    var state = consentState(choices);
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'kk_consent_ready',
+      kk_consent_status: status,
+      kk_consent_analytics: state.kk_consent_analytics,
+      kk_consent_marketing: state.kk_consent_marketing,
+      kk_consent_personalization: state.kk_consent_personalization
+    });
+    window.lcmConsentReadyPushed = true;
+  }
+
+  function consentUpdate(choices, status) {
+    var state = consentState(choices);
+    var analytics = state.kk_consent_analytics;
+    var marketing = state.kk_consent_marketing;
+    var personalization = state.kk_consent_personalization;
 
     var updatePayload = {
       analytics_storage: analytics,
@@ -127,6 +149,7 @@
       kk_consent_marketing: marketing,
       kk_consent_personalization: personalization
     });
+    pushReady(choices, status);
   }
 
   function openBanner(showPanel) {
@@ -151,6 +174,9 @@
   if (existing && existing.choices) {
     setChoices(existing.choices);
     closeBanner();
+    if (!window.lcmConsentReadyPushed) {
+      pushReady(existing.choices, 'saved');
+    }
   } else {
     setChoices({
       analytics: !!config.defaultAnalytics,
@@ -170,7 +196,7 @@
     if (action === 'accept_all') {
       choices = { analytics: true, marketing: true, personalization: true };
       persist(choices);
-      consentUpdate(choices);
+      consentUpdate(choices, 'accepted');
       closeBanner();
       return;
     }
@@ -179,7 +205,7 @@
       choices = { analytics: false, marketing: false, personalization: false };
       setChoices(choices);
       persist(choices);
-      consentUpdate(choices);
+      consentUpdate(choices, 'rejected');
       closeBanner();
       return;
     }
@@ -196,7 +222,7 @@
         personalization: !!chkPersonalization.checked
       };
       persist(choices);
-      consentUpdate(choices);
+      consentUpdate(choices, 'custom');
       closeBanner();
     }
   });
