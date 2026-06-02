@@ -1,6 +1,6 @@
 # Lightweight Consent Mode
 
-Version: **0.3.5**
+Version: **0.3.6**
 
 ## Installation
 1. Copy plugin folder to `wp-content/plugins/lightweight-consent-mode/`.
@@ -8,8 +8,8 @@ Version: **0.3.5**
 3. Open **Settings → Lightweight Consent Mode**.
 
 ## What is configurable
-- Banner header/title text (EN/HU fields, EN fallback)
-- Banner body text, panel intro, category descriptions, policy link text
+- All frontend banner strings are editable in EN/HU fields, with English fallback
+- Banner header/title, body text, policy link text, button labels, panel intro, category labels, category descriptions, and accessibility labels
 - Preset-based buttons (`universal`, `kk`) with action-based behavior (`data-consent-action`)
 - Banner button order (`accept_all,reject_all,settings` default)
 - Per-action button colors, hover colors, and button radius
@@ -41,6 +41,7 @@ For most GA4 setups, the normal trigger is still **All Pages** with consent chec
 - Detection: `navigator.languages`, fallback `navigator.language`
 - Supported: `en`, `hu`
 - Fallback: English
+- Hungarian fields are empty by default.
 - If Hungarian fields are empty, English values are used.
 - Source code defaults remain English-only.
 
@@ -51,7 +52,7 @@ Allowed in long text fields:
 Allowed in button labels:
 - `<strong>`, `<b>`, `<em>`
 
-All formatted values are sanitized server-side before frontend rendering.
+Aria-label and title fields are plain text only. All formatted values are sanitized server-side before frontend rendering.
 
 ## Plugin list Settings link
 The plugin adds a **Settings** link on the WordPress Plugins page via `plugin_action_links_{plugin_basename}`.

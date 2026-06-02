@@ -45,9 +45,11 @@
     return '';
   }
 
+  banner.setAttribute('aria-label', t('dialog_label'));
   root.querySelector('.lcm-consent-title').innerHTML = tHtml('banner_title');
   root.querySelector('.lcm-consent-text').innerHTML = tHtml('banner_text');
   root.querySelector('.lcm-necessary-label').textContent = t('necessary');
+  root.querySelector('.lcm-necessary-desc').innerHTML = tHtml('necessary_desc');
   root.querySelector('.lcm-analytics-label').textContent = t('analytics');
   root.querySelector('.lcm-marketing-label').textContent = t('marketing');
   root.querySelector('.lcm-personalization-label').textContent = t('personalization');
@@ -64,7 +66,7 @@
   reopenBtn.setAttribute('title', t('reopen'));
   if (!config.reopenIconOnly) {
     reopenBtn.classList.add('lcm-consent-reopen-text');
-    reopenBtn.textContent = t('reopen');
+    reopenBtn.innerHTML = tHtml('reopen_html');
   }
 
   if (config.policyUrl) {

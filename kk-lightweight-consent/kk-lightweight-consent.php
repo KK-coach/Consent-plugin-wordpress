@@ -3,7 +3,7 @@
  * Plugin Name: Lightweight Consent Mode
  * Plugin URI: https://example.com
  * Description: Lightweight consent banner for WordPress with Google Tag Manager and Google Consent Mode v2 support.
- * Version: 0.3.5
+ * Version: 0.3.6
  * Author: Consent Plugin
  * Author URI: https://example.com
  * Text Domain: lightweight-consent-mode
@@ -13,7 +13,7 @@
 defined( 'ABSPATH' ) || exit;
 
 class Lightweight_Consent_Mode {
-	const LCM_VERSION   = '0.3.5';
+	const LCM_VERSION   = '0.3.6';
 	const OPTION_KEY    = 'lcm_options';
 	const LEGACY_OPTION = 'kk_lwc_options';
 
@@ -101,6 +101,16 @@ class Lightweight_Consent_Mode {
 			'banner_text_hu'            => '',
 			'panel_intro_en'            => 'Manage your consent preferences below.',
 			'panel_intro_hu'            => '',
+			'necessary_label_en'        => 'Necessary cookies',
+			'necessary_label_hu'        => '',
+			'analytics_label_en'        => 'Analytics',
+			'analytics_label_hu'        => '',
+			'marketing_label_en'        => 'Marketing',
+			'marketing_label_hu'        => '',
+			'personalization_label_en'  => 'Personalization',
+			'personalization_label_hu'  => '',
+			'necessary_desc_en'         => 'Necessary cookies are always active.',
+			'necessary_desc_hu'         => '',
 			'analytics_desc_en'         => 'Allow website analytics measurement.',
 			'analytics_desc_hu'         => '',
 			'marketing_desc_en'         => 'Allow marketing and ad measurement tags.',
@@ -114,6 +124,8 @@ class Lightweight_Consent_Mode {
 			'label_customize_en'        => 'Customize',  'label_customize_hu' => '',
 			'label_save_choices_en'     => 'Save choices','label_save_choices_hu' => '',
 			'label_reopen_en'           => 'Cookie settings', 'label_reopen_hu' => '',
+			'dialog_label_en'           => 'Cookie consent',
+			'dialog_label_hu'           => '',
 			'gtm_container_id'          => '',
 			'gtm_inject'                => 0,
 			'debug_mode'                => 0,
@@ -211,6 +223,22 @@ class Lightweight_Consent_Mode {
 		}
 	}
 
+	private function admin_text_input( $label, $key, $value, $description = '' ) {
+		echo '<tr><th>' . esc_html( $label ) . '</th><td><input class="regular-text" name="' . esc_attr( self::OPTION_KEY ) . '[' . esc_attr( $key ) . ']" value="' . esc_attr( $value ) . '">';
+		if ( '' !== $description ) {
+			echo '<p class="description">' . esc_html( $description ) . '</p>';
+		}
+		echo '</td></tr>';
+	}
+
+	private function admin_textarea( $label, $key, $value, $description = '' ) {
+		echo '<tr><th>' . esc_html( $label ) . '</th><td><textarea class="large-text" rows="3" name="' . esc_attr( self::OPTION_KEY ) . '[' . esc_attr( $key ) . ']">' . esc_textarea( $value ) . '</textarea>';
+		if ( '' !== $description ) {
+			echo '<p class="description">' . esc_html( $description ) . '</p>';
+		}
+		echo '</td></tr>';
+	}
+
 	public function enqueue_assets() {
 		if ( is_admin() ) { return; }
 		$options = $this->get_options();
@@ -263,15 +291,16 @@ class Lightweight_Consent_Mode {
 			'translations'           => array(
 				'en' => array(
 					'banner_title' => $this->sanitize_formatted_text( $options['banner_title_en'] ), 'banner_text' => $this->sanitize_formatted_text( $options['banner_text_en'] ), 'panel_intro' => $this->sanitize_formatted_text( $options['panel_intro_en'] ),
-					'accept_all' => $this->sanitize_button_html( $options['label_accept_all_en'] ), 'reject_all' => $this->sanitize_button_html( $options['label_reject_all_en'] ), 'customize' => $this->sanitize_button_html( $options['label_customize_en'] ), 'save_choices' => $this->sanitize_button_html( $options['label_save_choices_en'] ), 'reopen' => wp_strip_all_tags( $options['label_reopen_en'] ),
-					'necessary' => 'Necessary cookies', 'analytics' => 'Analytics', 'marketing' => 'Marketing', 'personalization' => 'Personalization',
-					'analytics_desc' => $this->sanitize_formatted_text( $options['analytics_desc_en'] ), 'marketing_desc' => $this->sanitize_formatted_text( $options['marketing_desc_en'] ), 'personalization_desc' => $this->sanitize_formatted_text( $options['personalization_desc_en'] ),
+					'accept_all' => $this->sanitize_button_html( $options['label_accept_all_en'] ), 'reject_all' => $this->sanitize_button_html( $options['label_reject_all_en'] ), 'customize' => $this->sanitize_button_html( $options['label_customize_en'] ), 'save_choices' => $this->sanitize_button_html( $options['label_save_choices_en'] ), 'reopen_html' => $this->sanitize_button_html( $options['label_reopen_en'] ), 'reopen' => sanitize_text_field( wp_strip_all_tags( $options['label_reopen_en'] ) ), 'dialog_label' => sanitize_text_field( wp_strip_all_tags( $options['dialog_label_en'] ) ),
+					'necessary' => sanitize_text_field( wp_strip_all_tags( $options['necessary_label_en'] ) ), 'analytics' => sanitize_text_field( wp_strip_all_tags( $options['analytics_label_en'] ) ), 'marketing' => sanitize_text_field( wp_strip_all_tags( $options['marketing_label_en'] ) ), 'personalization' => sanitize_text_field( wp_strip_all_tags( $options['personalization_label_en'] ) ),
+					'necessary_desc' => $this->sanitize_formatted_text( $options['necessary_desc_en'] ), 'analytics_desc' => $this->sanitize_formatted_text( $options['analytics_desc_en'] ), 'marketing_desc' => $this->sanitize_formatted_text( $options['marketing_desc_en'] ), 'personalization_desc' => $this->sanitize_formatted_text( $options['personalization_desc_en'] ),
 					'more_info' => $this->sanitize_formatted_text( $options['policy_link_text_en'] ),
 				),
 				'hu' => array(
 					'banner_title' => $this->sanitize_formatted_text( $options['banner_title_hu'] ), 'banner_text' => $this->sanitize_formatted_text( $options['banner_text_hu'] ), 'panel_intro' => $this->sanitize_formatted_text( $options['panel_intro_hu'] ),
-					'accept_all' => $this->sanitize_button_html( $options['label_accept_all_hu'] ), 'reject_all' => $this->sanitize_button_html( $options['label_reject_all_hu'] ), 'customize' => $this->sanitize_button_html( $options['label_customize_hu'] ), 'save_choices' => $this->sanitize_button_html( $options['label_save_choices_hu'] ), 'reopen' => wp_strip_all_tags( $options['label_reopen_hu'] ),
-					'necessary' => '', 'analytics' => '', 'marketing' => '', 'personalization' => '', 'analytics_desc' => $this->sanitize_formatted_text( $options['analytics_desc_hu'] ), 'marketing_desc' => $this->sanitize_formatted_text( $options['marketing_desc_hu'] ), 'personalization_desc' => $this->sanitize_formatted_text( $options['personalization_desc_hu'] ), 'more_info' => $this->sanitize_formatted_text( $options['policy_link_text_hu'] ),
+					'accept_all' => $this->sanitize_button_html( $options['label_accept_all_hu'] ), 'reject_all' => $this->sanitize_button_html( $options['label_reject_all_hu'] ), 'customize' => $this->sanitize_button_html( $options['label_customize_hu'] ), 'save_choices' => $this->sanitize_button_html( $options['label_save_choices_hu'] ), 'reopen_html' => $this->sanitize_button_html( $options['label_reopen_hu'] ), 'reopen' => sanitize_text_field( wp_strip_all_tags( $options['label_reopen_hu'] ) ), 'dialog_label' => sanitize_text_field( wp_strip_all_tags( $options['dialog_label_hu'] ) ),
+					'necessary' => sanitize_text_field( wp_strip_all_tags( $options['necessary_label_hu'] ) ), 'analytics' => sanitize_text_field( wp_strip_all_tags( $options['analytics_label_hu'] ) ), 'marketing' => sanitize_text_field( wp_strip_all_tags( $options['marketing_label_hu'] ) ), 'personalization' => sanitize_text_field( wp_strip_all_tags( $options['personalization_label_hu'] ) ),
+					'necessary_desc' => $this->sanitize_formatted_text( $options['necessary_desc_hu'] ), 'analytics_desc' => $this->sanitize_formatted_text( $options['analytics_desc_hu'] ), 'marketing_desc' => $this->sanitize_formatted_text( $options['marketing_desc_hu'] ), 'personalization_desc' => $this->sanitize_formatted_text( $options['personalization_desc_hu'] ), 'more_info' => $this->sanitize_formatted_text( $options['policy_link_text_hu'] ),
 				),
 			),
 		);
@@ -302,7 +331,7 @@ class Lightweight_Consent_Mode {
 		$panel_buttons  = $this->ordered_panel_buttons( $presets[ $preset ]['panel_buttons'], $o['panel_order'] );
 		?>
 		<div id="lcm-consent-root" class="lcm-consent-root" data-desktop-position="<?php echo esc_attr( $o['desktop_position'] ); ?>" data-mobile-layout="<?php echo esc_attr( $o['mobile_layout'] ); ?>" data-desktop-layout="<?php echo esc_attr( $o['desktop_layout'] ); ?>">
-			<div class="lcm-consent-banner" role="dialog" aria-live="polite" aria-label="Cookie consent" hidden>
+			<div class="lcm-consent-banner" role="dialog" aria-live="polite" aria-label="" hidden>
 				<img class="lcm-consent-logo" src="" alt="" hidden>
 				<h3 class="lcm-consent-title"></h3>
 				<p class="lcm-consent-text"></p>
@@ -310,7 +339,7 @@ class Lightweight_Consent_Mode {
 				<div class="lcm-consent-actions"><?php $this->render_buttons( $banner_buttons ); ?></div>
 				<div class="lcm-consent-panel" hidden>
 					<p class="lcm-panel-intro"></p>
-					<label><input type="checkbox" checked disabled> <span class="lcm-necessary-label"></span></label>
+					<label><input type="checkbox" checked disabled> <span class="lcm-necessary-label"></span> <small class="lcm-necessary-desc"></small></label>
 					<label><input type="checkbox" class="lcm-analytics"> <span class="lcm-analytics-label"></span> <small class="lcm-analytics-desc"></small></label>
 					<label><input type="checkbox" class="lcm-marketing"> <span class="lcm-marketing-label"></span> <small class="lcm-marketing-desc"></small></label>
 					<label><input type="checkbox" class="lcm-personalization"> <span class="lcm-personalization-label"></span> <small class="lcm-personalization-desc"></small></label>
@@ -348,9 +377,9 @@ class Lightweight_Consent_Mode {
 		foreach(array('header_custom_font','body_custom_font','button_custom_font') as $k){$o[$k]=$this->sanitize_font_family($o[$k]);}
 		foreach(array('design_bg_color','design_text_color','design_header_text_color','design_border_color','btn_accept_bg','btn_accept_text','btn_accept_border','btn_reject_bg','btn_reject_text','btn_reject_border','btn_settings_bg','btn_settings_text','btn_settings_border','btn_save_bg','btn_save_text','btn_save_border') as $k){$o[$k]=sanitize_hex_color($o[$k])?:$d[$k];}
 		foreach(array('btn_accept_hover_bg','btn_accept_hover_text','btn_accept_hover_border','btn_reject_hover_bg','btn_reject_hover_text','btn_reject_hover_border','btn_settings_hover_bg','btn_settings_hover_text','btn_settings_hover_border','btn_save_hover_bg','btn_save_hover_text','btn_save_hover_border') as $k){$v=sanitize_hex_color($o[$k]);$o[$k]=$v?:'';}
-		foreach(array('banner_title_en','banner_title_hu','banner_text_en','banner_text_hu','panel_intro_en','panel_intro_hu','analytics_desc_en','analytics_desc_hu','marketing_desc_en','marketing_desc_hu','personalization_desc_en','personalization_desc_hu','policy_link_text_en','policy_link_text_hu') as $k){$o[$k]=$this->sanitize_formatted_text($o[$k]);}
-		foreach(array('label_accept_all_en','label_accept_all_hu','label_reject_all_en','label_reject_all_hu','label_customize_en','label_customize_hu','label_save_choices_en','label_save_choices_hu') as $k){$o[$k]=$this->sanitize_button_html($o[$k]);}
-		foreach(array('label_reopen_en','label_reopen_hu') as $k){$o[$k]=sanitize_text_field(wp_strip_all_tags($o[$k]));}
+		foreach(array('banner_title_en','banner_title_hu','banner_text_en','banner_text_hu','panel_intro_en','panel_intro_hu','necessary_desc_en','necessary_desc_hu','analytics_desc_en','analytics_desc_hu','marketing_desc_en','marketing_desc_hu','personalization_desc_en','personalization_desc_hu','policy_link_text_en','policy_link_text_hu') as $k){$o[$k]=$this->sanitize_formatted_text($o[$k]);}
+		foreach(array('label_accept_all_en','label_accept_all_hu','label_reject_all_en','label_reject_all_hu','label_customize_en','label_customize_hu','label_save_choices_en','label_save_choices_hu','label_reopen_en','label_reopen_hu') as $k){$o[$k]=$this->sanitize_button_html($o[$k]);}
+		foreach(array('necessary_label_en','necessary_label_hu','analytics_label_en','analytics_label_hu','marketing_label_en','marketing_label_hu','personalization_label_en','personalization_label_hu','dialog_label_en','dialog_label_hu') as $k){$o[$k]=sanitize_text_field(wp_strip_all_tags($o[$k]));}
 		return $o;
 	}
 
@@ -386,7 +415,65 @@ class Lightweight_Consent_Mode {
 		</details>
 
 		<h2>General</h2><table class="form-table"><tr><th>Banner enabled</th><td><input type="checkbox" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_enabled]" value="1" <?php checked($o['banner_enabled'],1); ?>></td></tr><tr><th>Policy URL</th><td><input type="url" class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[policy_url]" value="<?php echo esc_attr($o['policy_url']); ?>"></td></tr><tr><th>Language mode</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[language_mode]"><option value="browser" <?php selected($o['language_mode'],'browser'); ?>>browser</option><option value="en" <?php selected($o['language_mode'],'en'); ?>>en</option><option value="hu" <?php selected($o['language_mode'],'hu'); ?>>hu</option></select></td></tr><tr><th>Banner preset</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_preset]"><option value="universal" <?php selected($o['banner_preset'],'universal'); ?>>universal</option><option value="kk" <?php selected($o['banner_preset'],'kk'); ?>>kk</option></select></td></tr></table>
-		<h2>Texts</h2><p>You can use: <strong>bold</strong>, <em>emphasis</em>, <br>, and links in long text fields. Button labels support <strong>bold</strong>, <b>bold</b>, <em>emphasis</em>.</p><table class="form-table"><tr><th>Banner title (EN)</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_title_en]" value="<?php echo esc_attr($o['banner_title_en']); ?>"></td></tr><tr><th>Banner title (HU)</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_title_hu]" value="<?php echo esc_attr($o['banner_title_hu']); ?>"></td></tr><tr><th>Banner text (EN)</th><td><textarea class="large-text" rows="3" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_text_en]"><?php echo esc_textarea($o['banner_text_en']); ?></textarea></td></tr><tr><th>Banner text (HU)</th><td><textarea class="large-text" rows="3" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_text_hu]"><?php echo esc_textarea($o['banner_text_hu']); ?></textarea></td></tr><tr><th>Policy link text (EN)</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[policy_link_text_en]" value="<?php echo esc_attr($o['policy_link_text_en']); ?>"></td></tr><tr><th>Policy link text (HU)</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[policy_link_text_hu]" value="<?php echo esc_attr($o['policy_link_text_hu']); ?>"></td></tr></table>
+        <h2>Texts</h2>
+        <p>Long text fields support safe limited HTML: <code>&lt;strong&gt;</code>, <code>&lt;b&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;br&gt;</code>, and links. Button labels support <code>&lt;strong&gt;</code>, <code>&lt;b&gt;</code>, and <code>&lt;em&gt;</code>. Accessibility labels are plain text only.</p>
+        <h3>Banner texts</h3>
+        <table class="form-table">
+            <?php
+            $this->admin_text_input( 'Banner title (EN)', 'banner_title_en', $o['banner_title_en'] );
+            $this->admin_text_input( 'Banner title (HU)', 'banner_title_hu', $o['banner_title_hu'] );
+            $this->admin_textarea( 'Banner text (EN)', 'banner_text_en', $o['banner_text_en'] );
+            $this->admin_textarea( 'Banner text (HU)', 'banner_text_hu', $o['banner_text_hu'] );
+            $this->admin_text_input( 'Policy link text (EN)', 'policy_link_text_en', $o['policy_link_text_en'] );
+            $this->admin_text_input( 'Policy link text (HU)', 'policy_link_text_hu', $o['policy_link_text_hu'] );
+            ?>
+        </table>
+        <h3>Button labels</h3>
+        <table class="form-table">
+            <?php
+            $button_html_note = 'Supports simple inline emphasis only.';
+            $this->admin_text_input( 'Accept all label (EN)', 'label_accept_all_en', $o['label_accept_all_en'], $button_html_note );
+            $this->admin_text_input( 'Accept all label (HU)', 'label_accept_all_hu', $o['label_accept_all_hu'], $button_html_note );
+            $this->admin_text_input( 'Reject all label (EN)', 'label_reject_all_en', $o['label_reject_all_en'], $button_html_note );
+            $this->admin_text_input( 'Reject all label (HU)', 'label_reject_all_hu', $o['label_reject_all_hu'], $button_html_note );
+            $this->admin_text_input( 'Customize label (EN)', 'label_customize_en', $o['label_customize_en'], $button_html_note );
+            $this->admin_text_input( 'Customize label (HU)', 'label_customize_hu', $o['label_customize_hu'], $button_html_note );
+            $this->admin_text_input( 'Save choices label (EN)', 'label_save_choices_en', $o['label_save_choices_en'], $button_html_note );
+            $this->admin_text_input( 'Save choices label (HU)', 'label_save_choices_hu', $o['label_save_choices_hu'], $button_html_note );
+            $this->admin_text_input( 'Reopen / Cookie settings label (EN)', 'label_reopen_en', $o['label_reopen_en'], $button_html_note );
+            $this->admin_text_input( 'Reopen / Cookie settings label (HU)', 'label_reopen_hu', $o['label_reopen_hu'], $button_html_note );
+            ?>
+        </table>
+        <h3>Customize panel texts</h3>
+        <table class="form-table">
+            <?php
+            $this->admin_textarea( 'Panel intro (EN)', 'panel_intro_en', $o['panel_intro_en'] );
+            $this->admin_textarea( 'Panel intro (HU)', 'panel_intro_hu', $o['panel_intro_hu'] );
+            $this->admin_text_input( 'Necessary cookies label (EN)', 'necessary_label_en', $o['necessary_label_en'], 'Plain text only.' );
+            $this->admin_text_input( 'Necessary cookies label (HU)', 'necessary_label_hu', $o['necessary_label_hu'], 'Plain text only.' );
+            $this->admin_textarea( 'Necessary cookies description (EN)', 'necessary_desc_en', $o['necessary_desc_en'] );
+            $this->admin_textarea( 'Necessary cookies description (HU)', 'necessary_desc_hu', $o['necessary_desc_hu'] );
+            $this->admin_text_input( 'Analytics label (EN)', 'analytics_label_en', $o['analytics_label_en'], 'Plain text only.' );
+            $this->admin_text_input( 'Analytics label (HU)', 'analytics_label_hu', $o['analytics_label_hu'], 'Plain text only.' );
+            $this->admin_textarea( 'Analytics description (EN)', 'analytics_desc_en', $o['analytics_desc_en'] );
+            $this->admin_textarea( 'Analytics description (HU)', 'analytics_desc_hu', $o['analytics_desc_hu'] );
+            $this->admin_text_input( 'Marketing label (EN)', 'marketing_label_en', $o['marketing_label_en'], 'Plain text only.' );
+            $this->admin_text_input( 'Marketing label (HU)', 'marketing_label_hu', $o['marketing_label_hu'], 'Plain text only.' );
+            $this->admin_textarea( 'Marketing description (EN)', 'marketing_desc_en', $o['marketing_desc_en'] );
+            $this->admin_textarea( 'Marketing description (HU)', 'marketing_desc_hu', $o['marketing_desc_hu'] );
+            $this->admin_text_input( 'Personalization label (EN)', 'personalization_label_en', $o['personalization_label_en'], 'Plain text only.' );
+            $this->admin_text_input( 'Personalization label (HU)', 'personalization_label_hu', $o['personalization_label_hu'], 'Plain text only.' );
+            $this->admin_textarea( 'Personalization description (EN)', 'personalization_desc_en', $o['personalization_desc_en'] );
+            $this->admin_textarea( 'Personalization description (HU)', 'personalization_desc_hu', $o['personalization_desc_hu'] );
+            ?>
+        </table>
+        <h3>Accessibility labels</h3>
+        <table class="form-table">
+            <?php
+            $this->admin_text_input( 'Dialog aria-label (EN)', 'dialog_label_en', $o['dialog_label_en'], 'Plain text only.' );
+            $this->admin_text_input( 'Dialog aria-label (HU)', 'dialog_label_hu', $o['dialog_label_hu'], 'Plain text only.' );
+            ?>
+        </table>
 		<h2>Design</h2><table class="form-table"><tr><th>Header text color</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_header_text_color]" value="<?php echo esc_attr($o['design_header_text_color']); ?>"></td></tr><tr><th>Header font preset</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[header_font_preset]"><option value="inherit" <?php selected($o['header_font_preset'],'inherit'); ?>>inherit</option><option value="system" <?php selected($o['header_font_preset'],'system'); ?>>system</option><option value="arial" <?php selected($o['header_font_preset'],'arial'); ?>>arial</option><option value="georgia" <?php selected($o['header_font_preset'],'georgia'); ?>>georgia</option><option value="custom" <?php selected($o['header_font_preset'],'custom'); ?>>custom</option></select></td></tr><tr><th>Header custom font family</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[header_custom_font]" value="<?php echo esc_attr($o['header_custom_font']); ?>"></td></tr><tr><th>Header font size (px)</th><td><input type="number" min="10" max="64" name="<?php echo esc_attr(self::OPTION_KEY); ?>[header_font_size]" value="<?php echo esc_attr($o['header_font_size']); ?>"></td></tr><tr><th>Header font weight</th><td><input type="number" min="100" max="900" step="100" name="<?php echo esc_attr(self::OPTION_KEY); ?>[header_font_weight]" value="<?php echo esc_attr($o['header_font_weight']); ?>"></td></tr><tr><th>Body font preset</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[body_font_preset]"><option value="inherit" <?php selected($o['body_font_preset'],'inherit'); ?>>inherit</option><option value="system" <?php selected($o['body_font_preset'],'system'); ?>>system</option><option value="arial" <?php selected($o['body_font_preset'],'arial'); ?>>arial</option><option value="georgia" <?php selected($o['body_font_preset'],'georgia'); ?>>georgia</option><option value="custom" <?php selected($o['body_font_preset'],'custom'); ?>>custom</option></select></td></tr><tr><th>Body custom font family</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[body_custom_font]" value="<?php echo esc_attr($o['body_custom_font']); ?>"></td></tr><tr><th>Background color</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_bg_color]" value="<?php echo esc_attr($o['design_bg_color']); ?>"></td></tr><tr><th>Text color</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_text_color]" value="<?php echo esc_attr($o['design_text_color']); ?>"></td></tr><tr><th>Border color</th><td><input name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_border_color]" value="<?php echo esc_attr($o['design_border_color']); ?>"></td></tr><tr><th>Border width (px)</th><td><input type="number" min="0" max="10" name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_border_width]" value="<?php echo esc_attr($o['design_border_width']); ?>"></td></tr><tr><th>Border radius (px)</th><td><input type="number" min="0" max="40" name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_border_radius]" value="<?php echo esc_attr($o['design_border_radius']); ?>"></td></tr><tr><th>Banner max width (px)</th><td><input type="number" min="320" max="1400" name="<?php echo esc_attr(self::OPTION_KEY); ?>[design_max_width]" value="<?php echo esc_attr($o['design_max_width']); ?>"></td></tr><tr><th>Banner padding (px)</th><td><input type="number" min="0" max="64" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_padding]" value="<?php echo esc_attr($o['banner_padding']); ?>"></td></tr></table>
 		<h2>Buttons</h2><table class="form-table"><tr><th>Banner button order</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[banner_order]" value="<?php echo esc_attr($o['banner_order']); ?>"><p><small>Allowed actions: accept_all,reject_all,settings</small></p></td></tr><tr><th>Panel button order</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[panel_order]" value="<?php echo esc_attr($o['panel_order']); ?>"><p><small>Allowed actions: save_choices,reject_all. Default: save_choices</small></p></td></tr><tr><th>Button border radius (px)</th><td><input type="number" min="0" max="40" name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_radius]" value="<?php echo esc_attr($o['button_radius']); ?>"></td></tr><tr><th>Button padding Y (px)</th><td><input type="number" min="0" max="32" name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_padding_y]" value="<?php echo esc_attr($o['button_padding_y']); ?>"></td></tr><tr><th>Button padding X (px)</th><td><input type="number" min="0" max="64" name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_padding_x]" value="<?php echo esc_attr($o['button_padding_x']); ?>"></td></tr><tr><th>Button font preset</th><td><select name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_font_preset]"><option value="inherit" <?php selected($o['button_font_preset'],'inherit'); ?>>inherit</option><option value="system" <?php selected($o['button_font_preset'],'system'); ?>>system</option><option value="arial" <?php selected($o['button_font_preset'],'arial'); ?>>arial</option><option value="georgia" <?php selected($o['button_font_preset'],'georgia'); ?>>georgia</option><option value="custom" <?php selected($o['button_font_preset'],'custom'); ?>>custom</option></select></td></tr><tr><th>Button custom font family</th><td><input class="regular-text" name="<?php echo esc_attr(self::OPTION_KEY); ?>[button_custom_font]" value="<?php echo esc_attr($o['button_custom_font']); ?>"></td></tr><tr><th>Accept all button</th><td>Background color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_accept_bg]" value="<?php echo esc_attr($o['btn_accept_bg']); ?>"> Text color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_accept_text]" value="<?php echo esc_attr($o['btn_accept_text']); ?>"> Border color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_accept_border]" value="<?php echo esc_attr($o['btn_accept_border']); ?>"><br>Hover background color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_accept_hover_bg]" value="<?php echo esc_attr($o['btn_accept_hover_bg']); ?>"> Hover text color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_accept_hover_text]" value="<?php echo esc_attr($o['btn_accept_hover_text']); ?>"> Hover border color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_accept_hover_border]" value="<?php echo esc_attr($o['btn_accept_hover_border']); ?>"></td></tr>
 <tr><th>Reject all button</th><td>Background color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_reject_bg]" value="<?php echo esc_attr($o['btn_reject_bg']); ?>"> Text color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_reject_text]" value="<?php echo esc_attr($o['btn_reject_text']); ?>"> Border color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_reject_border]" value="<?php echo esc_attr($o['btn_reject_border']); ?>"><br>Hover background color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_reject_hover_bg]" value="<?php echo esc_attr($o['btn_reject_hover_bg']); ?>"> Hover text color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_reject_hover_text]" value="<?php echo esc_attr($o['btn_reject_hover_text']); ?>"> Hover border color <input name="<?php echo esc_attr(self::OPTION_KEY); ?>[btn_reject_hover_border]" value="<?php echo esc_attr($o['btn_reject_hover_border']); ?>"></td></tr>
